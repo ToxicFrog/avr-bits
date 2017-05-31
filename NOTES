@@ -1,0 +1,67 @@
+Build process:
+- anything with a .ino extension gets catted together, then Arduino headers are prepended, arduino preprocessor runs, *then* it gets fed to gcc. So stuff with arduino-specific code should go in .ino files.
+- C files are compiled and then linked in to the final program. So stuff with multiplatform code should go in .c files.
+- stuff with linux specific code should go in .c files guarded by #ifdef HOST_NOTFORTH
+
+
+So, problem -- we only have 2k RAM and 1k EEPROM. We can't write flash while running, only the bootloader can do that. So anything we enter at the serial console has to be compiled and saved in RAM, and that doesn't give us a lot of space.
+
+Solution: store as much stuff as we can in EEPROM. This doesn't help with stuff entered at the terminal but anything precompiled can go in EEPROM except the dictionary chain itself.
+
+Problem: we can't store wordlists in EEPROM unless we're willing to eat a massive performance hit copying data out of flash every time we execute one. So EEPROM needs to contain actual C functions.
+
+So -- we need a compiler that can run on the host and generate C code that then gets compiled for the target by avr-gcc, keeping only the dictionary chain in memory -- and then we need to run the whole thing on the target.
+
+Also, we should be able to take wordlist definitions uploaded to the target at runtime and paste them into this compiler and get equivalent C out.
+
+So, say we define a word pair, C{ }, that lets us define a word implemented in C.
+
+If run on the target, it's an error. If run on the host, it emits C code to a file.
+
+Similarly, {} if run on the target compiles a wordlist to RAM. If run on the host it emits C code to call the functions making up that wordlist.
+
+This means we need a way of mapping words to valid C identifiers. Thought: word_<munged name>, where the name replaces non-alphanumerics with "X%02X" % char.
+
+How do we build the dictionary chain in the generated C code?
+
+// Top level loop:
+// - read a word
+//   - eat whitespace
+//   - read first char
+//   - if reader macro, invoke macro and let it handle the rest
+//   - else read rest of word into lexer
+// - if it's a literal, push it on the stack
+// - if it's a word, execute it
+
+// Executing a word:
+// - find Word* w in the dict
+// - w->execute(w)
+
+// Question: how do we handle function definitions? I was thinking something like:
+// > /inc { 1 + } def
+// a la ps
+// BUT
+// if /inc implicitly creates a new entry, how do we refer to it as a first-
+// class function?
+// Maybe:
+// > /inc makeword { 1 + } def
+// where:
+// makeword ( symbol -- word-pointer )
+// def ( word-pointer code -- )
+// But in that case, do we need a separate "symbol" type at all? Maybe we just
+// have a string type:
+// > "inc" makeword { 2 + } def
+// and then have a reader macro to refer to a function without calling it,
+// e.g.
+// > 3 `inc apply
+
+// How do we handle strings? One possibility is just to push them onto the stack
+// directly, e.g [bytes of string] [alignment padding] [length of string]
+// Of course, this means if you then call something that doesn't expect a string
+// Or, god forbid, something that manipulates the stack like dup or exch
+// CHAOS REIGNS
+// the ans forth approach is to store [pointer to string] [length of string]
+// and it's up to the interpreter to figure out where to store the string
+// the string is probably read-only
+// let's defer strings for now
+
