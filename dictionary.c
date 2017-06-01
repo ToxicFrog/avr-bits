@@ -1,7 +1,8 @@
-#include "dictionary.h"
+#include <stdlib.h>   // NULL, malloc
+#include <stdint.h>
+#include <string.h>   // strcmp, strlen
 
-// Core library that does the actual execution of words and provides functions
-// for interacting with the stacks.
+#include "dictionary.h"
 
 Word* DICTIONARY = NULL;
 
@@ -13,7 +14,6 @@ Word* find_word(const char* name) {
     }
     word = word->next;
   }
-  printf("Word not found in dictionary: %s\n", name);
   return NULL;
 }
 
@@ -22,7 +22,6 @@ void execute_word(Word* word) {
 }
 
 void register_word(const char* name, void (*exec)(Word*)) {
-  printf("Register: %p %s\n", exec, name);
   Word* word = malloc(sizeof(word)+strlen(name)+1);
   word->next = DICTIONARY;
   word->execute = exec;

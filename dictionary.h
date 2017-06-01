@@ -1,3 +1,6 @@
+#pragma once
+#include <stdint.h>
+
 // Definition of a !Forth Word
 typedef struct Word {
   // Pointer to next entry in the dict; NULL at end of dict.
@@ -19,8 +22,6 @@ typedef struct Word {
 } Word;
 
 extern Word* DICTIONARY;
-extern int STACK[];
-extern int SP;
 
 Word* find_word(const char*);
 void execute_word(Word*);
