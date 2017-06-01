@@ -3,13 +3,14 @@
 #include <string.h>   // strcmp, strlen
 
 #include "dictionary.h"
+#include "tty.h"
 
 Word* DICTIONARY = NULL;
 
 Word* find_word(const char* name) {
   Word* word = DICTIONARY;
   while (word) {
-    if (strcmp((char*)(&word->data), name) == 0) {
+    if (strcmp(word->name, name) == 0) {
       return word;
     }
     word = word->next;
@@ -22,11 +23,10 @@ void execute_word(Word* word) {
 }
 
 void register_word(const char* name, void (*exec)(Word*)) {
-  Word* word = malloc(sizeof(word)+strlen(name)+1);
+  println(name);
+  Word* word = malloc(sizeof(Word));
   word->next = DICTIONARY;
   word->execute = exec;
-  word->flags = 0x0;
-  strcpy((char*)(&word->data), name);
+  word->name = name;
   DICTIONARY = word;
 }
-

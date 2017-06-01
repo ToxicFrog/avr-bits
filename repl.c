@@ -3,6 +3,7 @@
 #include "repl.h"
 #include "dictionary.h"
 #include "tty.h"
+#include "stacks.h"
 
 #define debuglog(...)
 
@@ -42,7 +43,7 @@ char process_word(char ch) {
       n = n*10 + (ch - '0');
     }
     debuglog("found int: %d\n", n);
-    //push(n);
+    push(n);
     return ch;
   }
 

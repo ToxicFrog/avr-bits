@@ -1,11 +1,13 @@
 extern "C" {
 #include "dictionary.h"
 #include "repl.h"
+#include "corewords.h"
 }
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
+  load_core_words();
 
   while(!Serial) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -15,17 +17,15 @@ void setup() {
   }
 
   digitalWrite(LED_BUILTIN, HIGH);
-  Serial.println("Initialization complete.");
-  Serial.print("Pointer size: "); Serial.println(sizeof(void*), 16);
-  Serial.print("Word size: "); Serial.println(sizeof(Word));
-  Serial.println("");
+  Serial.println(F("Initialization complete."));
+  Serial.print(F("Pointer size: ")); Serial.println(sizeof(void*), 16);
+  Serial.print(F("Word size: ")); Serial.println(sizeof(Word));
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(1000);
   while(1) {
-    Serial.print("] ");
+    Serial.print(F("] "));
     process_line();
   }
 }

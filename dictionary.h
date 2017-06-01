@@ -5,20 +5,17 @@
 typedef struct Word {
   // Pointer to next entry in the dict; NULL at end of dict.
   struct Word * next;
-  // Pointer to the interpreter for this word. For C words this points to the
-  // C function itself and the argument is unused.
-  // For !Forth words it points to the threaded interpreter.
+  // Pointer to the function to execute for this word. For precompiled words
+  // this is going to be a C function of no args that implements it.
+  // For words compiled to RAM this is going to be a pointer to a function
+  // that takes the Word* as its sole argument and interprets it.
   void (*execute)(struct Word *);
-  // Whether the word has compile-time semantics, etc.
-  uint8_t flags;
-  // This is the variable-length part and is kind of grody.
-  // The first (flags & WORD_NAMELEN_MASK) bytes are the name of the word.
-  // For C words, this is all that's needed.
-  // For !Forth words, this is then followed by:
-  // - a byte containing the number of words in the body NW
-  // - zero padding to make it machineword-aligned
-  // - NW pointers to words which make up the function body.
-  uint8_t data[];
+  // Pointer to the name of the word. For precompiled words this is a string
+  // constant. For RAM words this is malloc'd somewhere, probably.
+  const char * name;
+  // unused right now
+  // uint8_t flags;
+  // uint8_t data[];
 } Word;
 
 extern Word* DICTIONARY;

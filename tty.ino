@@ -24,3 +24,10 @@ extern "C" void error(const char * msg) {
   Serial.println(msg);
 }
 
+extern "C" void println(const char * msg) {
+  Serial.println(msg);
+}
+
+extern "C" void printint(const int n) {
+  Serial.println(n);
+}

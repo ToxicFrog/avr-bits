@@ -1,6 +1,6 @@
 all: notforth
 
-SRCS=notforth.c dictionary.c repl.c tty.c
+SRCS=notforth.c dictionary.c repl.c tty.c corewords.c stacks.c
 
 notforth: ${SRCS}
 	gcc -DHOST_NOTFORTH -Wall -Werror -g -o notforth ${SRCS}

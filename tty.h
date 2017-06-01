@@ -1,6 +1,13 @@
-// Compatibility shim so that we can call things like getchar() and have them
-// turn into calls to the serial port instead. Actual function definitions are
-// in serial_stdio.ino
+// Functions to talk to the terminal. These are defined in tty.ino (AVR) or
+// tty.c (linux).
+
+#pragma once
 
 char next_char();
 void error(const char *);
+void println(const char *);
+void printint(const int);
+
+#ifdef HOST_NOTFORTH
+#define F(s) s
+#endif
