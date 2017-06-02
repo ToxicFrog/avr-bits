@@ -2,12 +2,10 @@
 // tty.c (linux).
 
 #pragma once
+#include <stdlib.h>
 
 char next_char();
-void error(const char *);
-void println(const char *);
+void print(const char *);
+#define println(str) { print(str); print("\n"); }
 void printint(const int);
-
-#ifdef HOST_NOTFORTH
-#define F(s) s
-#endif
+void readline(char *, size_t);

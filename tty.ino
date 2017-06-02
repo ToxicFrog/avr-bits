@@ -1,5 +1,5 @@
 extern "C" char next_char() {
-  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(LED_BUILTIN, HIGH);
   while (!Serial.available()) {
     delay(10);
   }
@@ -15,17 +15,12 @@ extern "C" char next_char() {
   }
 
   ///Serial.print("Got char: "); Serial.println(ch);
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, LOW);
   return ch;
 }
 
-extern "C" void error(const char * msg) {
-  Serial.print("Error: ");
-  Serial.println(msg);
-}
-
-extern "C" void println(const char * msg) {
-  Serial.println(msg);
+extern "C" void print(const char * msg) {
+  Serial.print(msg);
 }
 
 extern "C" void printint(const int n) {
