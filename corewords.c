@@ -14,11 +14,11 @@ void word_printnum(Word* _) {
 }
 
 void word_stack(Word* _) {
-  println(F("Stack size:"));
+  println("Stack size:");
   printint(SP);
   println("Stack contents:");
   for (int i = SP-1; i >= 0; --i) {
-    printint(STACK[SP]);
+    printint(STACK[i]);
   }
   println("----");
 }
@@ -75,9 +75,11 @@ void word_words(Word* word) {
   }
 }
 
-// void word_bye(Word* _) {
-//   exit(0);
-// }
+#ifdef HOST_NOTFORTH
+void word_bye(Word* _) {
+  exit(0);
+}
+#endif
 
 void load_core_words() {
   //register_word("bye", word_bye);
@@ -92,5 +94,7 @@ void load_core_words() {
   register_word("!", word_poke);
   register_word("stack", word_stack);
   register_word("words", word_words);
+#ifdef HOST_NOTFORTH
+  register_word("bye", word_bye);
+#endif
 }
-
