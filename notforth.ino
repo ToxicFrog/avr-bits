@@ -7,12 +7,10 @@ extern "C" {
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
   load_core_words();
 
   while(!Serial) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
     delay(100);
   }
 
@@ -23,9 +21,5 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  while(1) {
-    Serial.print(F("] "));
-    process_line();
-  }
+  repl();
 }

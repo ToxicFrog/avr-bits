@@ -3,4 +3,4 @@
 #pragma once
 
 // Read and execute a line of text.
-void process_line();
+void repl();

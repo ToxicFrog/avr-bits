@@ -25,10 +25,7 @@ int main() {
   printf("Pointer size: %lu\n", sizeof(void*));
   printf("Word size: %lu\n", sizeof(Word));
   load_core_words();
-  while (true) {
-    printf("] ");
-    process_line();
-  }
+  repl();
   return 0;
 }
 
