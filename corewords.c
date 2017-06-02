@@ -14,9 +14,7 @@ void word_printnum(Word* _) {
 }
 
 void word_stack(Word* _) {
-  println("Stack size:");
-  printint(SP);
-  println("Stack contents:");
+  print("Stack size: "); printint(SP);
   for (int i = SP-1; i >= 0; --i) {
     printint(STACK[i]);
   }

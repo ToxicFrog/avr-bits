@@ -23,10 +23,16 @@ void printint(const int n) {
 // Does not store the final newline, but does store other whitespace.
 void readline(char* buf, size_t len) {
   size_t n = 0;
+  char comment = '\0';
   for (char ch = next_char();
        n < len && ch != '\n';
        ch = next_char()) {
-    buf[n++] = ch;
+    if (ch == '\b' || ch == '\x7F') {
+      buf[--n] = '\0'; continue;
+    }
+    if (ch == '#' || ch == '(') comment = ch;
+    if (!comment) buf[n++] = ch;
+    if (ch == ')' && comment == '(') comment = '\0';
   }
   buf[n] = '\0';
 }

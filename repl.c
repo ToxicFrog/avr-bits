@@ -21,16 +21,8 @@ void die(const char * msg) {
 // On error, report the error and then longjmp.
 // Return pointer to first character past word.
 char * run_word(char * buf) {
-  // Is it a comment?
-  // TODO: drop comments at user input time
-  if (buf[0] == '#') {
-    return buf + strlen(buf);
-  }
-  if (buf[0] == '(') {
-    char * end = strchr(buf, ')');
-    if (!end) die("error: unmatched start-of-comment character");
-    return end+1;
-  }
+  // Comments are dropped at readline() time to save space in the input buffer,
+  // so we don't need to check for them here.
 
   // Is it a numeric constant?
   if (isdigit(buf[0])
