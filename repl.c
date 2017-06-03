@@ -17,6 +17,24 @@ void die(const char * msg) {
   longjmp(catch, 1);
 }
 
+#define STRING_MAX 32
+
+int isquote(int c) {
+  return c == '"';
+}
+
+char * readstr(char * buf, int (*ateof)(int)) {
+  char * end = buf;
+  while (!ateof(*end) && *end != '\0') ++end;
+  if (!*end) die("Unterminated string literal");
+
+  char * str = malloc(end-buf+1);
+  strncpy(str, buf, end-buf);
+  str[end-buf] = '\0';
+  push((intptr_t)str);
+  return end+1;
+}
+
 // Run the word at the head of the buffer.
 // On error, report the error and then longjmp.
 // Return pointer to first character past word.
@@ -32,7 +50,14 @@ char * run_word(char * buf) {
     return end;
   }
 
-  // TODO: is it a string?
+  // Is it a string?
+  // TODO: support :foo for strings with no internal whitespace
+  if (buf[0] == '"') {
+    return readstr(buf+1, isquote);
+  }
+  if (buf[0] == ':') {
+    return readstr(buf+1, isspace);
+  }
 
   // Otherwise it's a word.
   char * end = buf;
