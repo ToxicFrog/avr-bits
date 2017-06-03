@@ -9,11 +9,11 @@
 
 //// IO words ////
 
-void word_printnum(Word* _) {
+void word_printnum() {
   printint(pop());
 }
 
-void word_stack(Word* _) {
+void word_stack() {
   print("Stack size: "); printint(SP);
   for (int i = SP-1; i >= 0; --i) {
     printint(STACK[i]);
@@ -23,58 +23,58 @@ void word_stack(Word* _) {
 
 //// Math words ////
 
-void word_add(Word* _) {
+void word_add() {
   int x = pop(), y = pop();
   push(x+y);
 }
 
-void word_sub(Word* _) {
+void word_sub() {
   int x = pop(), y = pop();
   push(x-y);
 }
 
-void word_mul(Word* _) {
+void word_mul() {
   int x = pop(), y = pop();
   push(x*y);
 }
 
-void word_div(Word* _) {
+void word_div() {
   int x = pop(), y = pop();
   push(x/y);
 }
 
-void word_mod(Word* _) {
+void word_mod() {
   int x = pop(), y = pop();
   push(x%y);
 }
 
 //// Memory words ////
 
-void word_peek(Word* _) {
+void word_peek() {
   int* ptr = (int*)((uint64_t)pop());
   push(*ptr);
 }
 
-void word_poke(Word* _) {
+void word_poke() {
   int* ptr = (int*)((uint64_t)pop());
   int val = pop();
   *ptr = val;
 }
 
-void word_dup(Word* _) {
+void word_dup() {
   push(peek());
 }
 
 //// Control words ////
 
-void word_words(Word* word) {
-  for (word = DICTIONARY; word; word = word->next) {
+void word_words() {
+  for (Word* word = DICTIONARY; word; word = word->next) {
     println(word->name);
   }
 }
 
 #ifdef HOST_NOTFORTH
-void word_bye(Word* _) {
+void word_bye() {
   exit(0);
 }
 #endif
