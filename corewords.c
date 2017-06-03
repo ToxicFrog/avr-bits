@@ -13,6 +13,10 @@ void word_printnum() {
   printint(pop());
 }
 
+void word_printstr() {
+  println((const char*)pop());
+}
+
 void word_stack() {
   print("Stack size: "); printint(SP);
   for (int i = SP-1; i >= 0; --i) {
@@ -73,6 +77,11 @@ void word_words() {
   }
 }
 
+void word_const() {
+  const char * name = (const char *)pop();
+  register_constant(name, pop());
+}
+
 #ifdef HOST_NOTFORTH
 void word_bye() {
   exit(0);
@@ -83,7 +92,10 @@ void load_core_words() {
   //register_word("bye", word_bye);
   println("Loading core words...");
   register_word(".", word_printnum);
+  register_word("s.", word_printstr);
+  register_word("dup", word_dup);
   register_word("+", word_add);
+  register_word("const", word_const);
   register_word("-", word_sub);
   register_word("*", word_mul);
   register_word("/", word_div);
