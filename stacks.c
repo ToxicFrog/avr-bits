@@ -3,17 +3,17 @@
 // Core library that does the actual execution of words and provides functions
 // for interacting with the stacks.
 
-int STACK[32];
-int SP = 0; // points to the empty slot just above the last stack slot
+Cell STACK[32];
+Cell SP = 0; // points to the empty slot just above the last stack slot
 
-int peek() {
+Cell peek() {
   return STACK[SP-1];
 }
 
-int pop() {
+Cell pop() {
   return STACK[--SP];
 }
 
-void push(int val) {
+void push(Cell val) {
   STACK[SP++] = val;
 }
