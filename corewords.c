@@ -72,14 +72,14 @@ void word_dup() {
 //// Control words ////
 
 void word_words() {
-  for (Word* word = DICTIONARY; word; word = word->next) {
+  for (Word* word = DICTIONARY; word; word = next_word(word)) {
     println(word->name);
   }
 }
 
 void word_const() {
   const char * name = (const char *)pop();
-  register_constant(name, pop());
+  register_word(name, pop())->flags |= IS_CONSTANT;
 }
 
 #ifdef HOST_NOTFORTH
@@ -110,26 +110,33 @@ void word_defn() {
   fn->name = name;
 }
 
-void load_core_words() {
-  //register_word("bye", word_bye);
-  println("Loading core words...");
-  register_word(".", word_printnum);
-  register_word("s.", word_printstr);
-  register_word(".s", word_stack);
-  register_word("dup", word_dup);
-  register_word("+", word_add);
-  register_word("const", word_const);
-  register_word("-", word_sub);
-  register_word("*", word_mul);
-  register_word("/", word_div);
-  register_word("%", word_mod);
-  register_word("?", word_peek);
-  register_word("!", word_poke);
-  register_word("words", word_words);
-  register_word("{", word_beginfn);
-  register_word("}", word_endfn)->flags |= IS_IMMEDIATE;
-  register_word("defn", word_defn);
+Word CORE_WORDS[] = {
+  { NULL, word_printnum, ".", 0 },
+  { WORD_IN_ARRAY, word_printstr, "s.", 0 },
+  { WORD_IN_ARRAY, word_stack, ".s", 0 },
+
+  { WORD_IN_ARRAY, word_beginfn, "{", 0 },
+  { WORD_IN_ARRAY, word_endfn, "}", IS_IMMEDIATE },
+  { WORD_IN_ARRAY, word_defn, "defn", 0 },
+  { WORD_IN_ARRAY, word_const, "const", 0 },
+
+  { WORD_IN_ARRAY, word_dup, "dup", 0 },
+
+  { WORD_IN_ARRAY, word_add, "+", 0 },
+  { WORD_IN_ARRAY, word_sub, "-", 0 },
+  { WORD_IN_ARRAY, word_mul, "*", 0 },
+  { WORD_IN_ARRAY, word_div, "/", 0 },
+  { WORD_IN_ARRAY, word_mod, "%", 0 },
+
+  { WORD_IN_ARRAY, word_peek, "?", 0 },
+  { WORD_IN_ARRAY, word_poke, "!", 0 },
+
 #ifdef HOST_NOTFORTH
-  register_word("bye", word_bye);
+  { WORD_IN_ARRAY, word_bye, "bye", 0 },
 #endif
+};
+
+void load_core_words() {
+  DICTIONARY = CORE_WORDS + (sizeof(CORE_WORDS)/sizeof(Word)) - 1;
+  register_word("words", word_words);//->flags |= NEXT_IN_FLASH;
 }

@@ -17,7 +17,7 @@ typedef struct Word {
   // constant. For RAM words this is malloc'd somewhere, probably.
   const char * name;
   // Flags regulating how the word behaves. See WordFlags below.
-  uint8_t flags;
+  uint16_t flags;
 } Word;
 
 typedef enum WordFlags {
@@ -33,8 +33,10 @@ typedef enum WordFlags {
   IS_IMMEDIATE  = 1 << 4,
 } WordFlags;
 
+#define WORD_IN_ARRAY ((Word*)(~0))
+
 extern Word* DICTIONARY;
 
 Word* find_word(const char*);
 Word* register_word(const char*, void (*)(void));
-Word* register_constant(const char*, intptr_t val);
+Word* next_word(Word*);

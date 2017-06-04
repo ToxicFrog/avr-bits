@@ -14,7 +14,7 @@ Word* next_word(Word* word) {
     println("next_word: NEXT_IN_FLASH not implemented");
     // FIXME
     return NULL;
-  } else if (word->next == (Word*)(~0)) {
+  } else if (word->next == WORD_IN_ARRAY) {
     return word-1;
   } else {
     return word->next;
@@ -41,11 +41,5 @@ Word* register_word(const char* name, void (*exec)(void)) {
   word->name = name;
   word->flags = 0x00;
   DICTIONARY = word;
-  return word;
-}
-
-Word* register_constant(const char* name, const intptr_t value) {
-  Word* word = register_word(name, (void *)value);
-  word->flags |= IS_CONSTANT;
   return word;
 }
