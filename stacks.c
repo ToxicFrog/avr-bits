@@ -8,7 +8,7 @@
 // for interacting with the stacks.
 
 Cell STACK[32];
-Cell SP = 0; // points to the empty slot just above the last stack slot
+size_t STACKP = 0; // points to the empty slot just above the last stack slot
 
 // Stack of Word definitions that we're compiling. When we finish a word, it
 // gets popped from this stack and added to DICTIONARY, albeit without a name.
@@ -19,24 +19,24 @@ Word* compiling = NULL;
 #define WORD_PUSHLITERAL ((Word*)0x0001)
 
 Cell peek() {
-  return STACK[SP-1];
+  return STACK[STACKP-1];
 }
 
 Cell pop() {
-  return STACK[--SP];
+  return STACK[--STACKP];
 }
 
 void push(Cell val) {
   if (compiling) {
-    STACK[SP++] = (Cell)WORD_PUSHLITERAL;
+    STACK[STACKP++] = (Cell)WORD_PUSHLITERAL;
     compiling->flags += 2;  // one for PUSHLITERAL and one for the actual value
   }
-  STACK[SP++] = val;
+  STACK[STACKP++] = val;
 }
 
 void execute_word(Word* word) {
   if (compiling && !(word->flags & IS_IMMEDIATE)) {
-    STACK[SP++] = (Cell)word;
+    STACK[STACKP++] = (Cell)word;
     compiling->flags++;
     return;
   }
@@ -78,10 +78,10 @@ Word* defn_end() {
   // This relies on Cell and Word* having the same size, but since Cell is intptr_t that should be the case?
   size_t len = (size_t)(word->flags);
   Word* body = calloc(len + 1, sizeof(Word*));
-  memcpy(body, &STACK[SP-len], len * sizeof(Cell));
+  memcpy(body, &STACK[STACKP-len], len * sizeof(Cell));
   word->execute = (WordImpl)body;
   // Drop the wordlist from the stack.
-  SP -= len;
+  STACKP -= len;
   // Set flags.
   word->flags = IS_WORDLIST;
   // Link the word into the dictionary.

@@ -18,8 +18,8 @@ void word_printstr() {
 }
 
 void word_stack() {
-  print("Stack size: "); printint(SP); println("");
-  for (int i = SP-1; i >= 0; --i) {
+  print("Stack size: "); printint(STACKP); println("");
+  for (int i = STACKP-1; i >= 0; --i) {
     printint(STACK[i]); println("");
   }
   println("----");

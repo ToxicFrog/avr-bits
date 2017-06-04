@@ -100,7 +100,7 @@ void repl() {
   while (1) {
     if (compiling) print("compile ");
     print("[");
-    printint(SP);
+    printint(STACKP);
     print("] ");
     readline(buf, INPUT_BUFSIZE);
     run_buffer(buf);

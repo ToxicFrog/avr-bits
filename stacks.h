@@ -8,7 +8,7 @@
 
 typedef intptr_t Cell;
 extern Cell STACK[];
-extern Cell SP;
+extern size_t STACKP;
 
 Cell pop();
 Cell peek();
