@@ -24,5 +24,5 @@ extern "C" void print(const char * msg) {
 }
 
 extern "C" void printint(const int n) {
-  Serial.println(n);
+  Serial.print(n);
 }

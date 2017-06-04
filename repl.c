@@ -50,8 +50,7 @@ char * run_word(char * buf) {
     return end;
   }
 
-  // Is it a string?
-  // TODO: support :foo for strings with no internal whitespace
+  // Is it a string literal?
   if (buf[0] == '"') {
     return readstr(buf+1, isquote);
   }

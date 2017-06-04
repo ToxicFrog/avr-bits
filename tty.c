@@ -13,7 +13,7 @@ void print(const char * msg) {
 }
 
 void printint(const int n) {
-  printf("%d\n", n);
+  printf("%d", n);
 }
 
 #endif  // HOST_NOTFORTH

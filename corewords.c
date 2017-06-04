@@ -10,7 +10,7 @@
 //// IO words ////
 
 void word_printnum() {
-  printint(pop());
+  printint(pop()); println("");
 }
 
 void word_printstr() {
@@ -18,9 +18,9 @@ void word_printstr() {
 }
 
 void word_stack() {
-  print("Stack size: "); printint(SP);
+  print("Stack size: "); printint(SP); println("");
   for (int i = SP-1; i >= 0; --i) {
-    printint(STACK[i]);
+    printint(STACK[i]); println("");
   }
   println("----");
 }

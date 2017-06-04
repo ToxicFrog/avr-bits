@@ -6,6 +6,6 @@
 
 char next_char();
 void print(const char *);
-#define println(str) { print(str); print("\n"); }
+#define println(str) { print(str); print("\r\n"); }
 void printint(const int);
 void readline(char *, size_t);
