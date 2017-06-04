@@ -73,13 +73,14 @@ void word_dup() {
 
 void word_words() {
   for (Word* word = DICTIONARY; word; word = next_word(word)) {
-    println(word->name);
+    printint((intptr_t)word); print(":"); printint((intptr_t)word->execute);
+    print(" "); print(word->name); print(" ["); printint(word->flags); println("]");
   }
 }
 
 void word_const() {
-  const char * name = (const char *)pop();
-  register_word(name, pop())->flags |= IS_CONSTANT;
+  const WordImpl value = (WordImpl)pop();
+  register_word((const char*)pop(), value)->flags |= IS_CONSTANT;
 }
 
 #ifdef HOST_NOTFORTH
