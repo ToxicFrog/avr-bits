@@ -94,9 +94,13 @@ void run_buffer(char * buf) {
   }
 }
 
+extern Word* compiling;
 void repl() {
   char buf[INPUT_BUFSIZE+1];
   while (1) {
+    if (compiling) print("compile ");
+    print("[");
+    printint(SP);
     print("] ");
     readline(buf, INPUT_BUFSIZE);
     run_buffer(buf);

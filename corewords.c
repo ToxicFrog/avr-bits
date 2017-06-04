@@ -88,11 +88,34 @@ void word_bye() {
 }
 #endif
 
+// the { that begins a function definition
+// switches the core into compile mode, if it's not already there, and pushes
+// a new, empty wordlist function onto the definition stack (can this be the same as the data stack?)
+void word_beginfn() {
+  defn_begin();
+}
+
+// the } that ends a function definition
+// switches the core out of compile mode, if this is the outermost function we're defining
+// allocates a Word for the function and pushes it onto the stack
+// The Word is added to the dictionary so it can be freed later, but has no name
+// To give it a name, use defn once it's on the stack.
+void word_endfn() {
+  push((Cell)defn_end());
+}
+
+void word_defn() {
+  Word* fn = (Word*)pop();
+  char* name = (char*)pop();
+  fn->name = name;
+}
+
 void load_core_words() {
   //register_word("bye", word_bye);
   println("Loading core words...");
   register_word(".", word_printnum);
   register_word("s.", word_printstr);
+  register_word(".s", word_stack);
   register_word("dup", word_dup);
   register_word("+", word_add);
   register_word("const", word_const);
@@ -102,8 +125,10 @@ void load_core_words() {
   register_word("%", word_mod);
   register_word("?", word_peek);
   register_word("!", word_poke);
-  register_word("stack", word_stack);
   register_word("words", word_words);
+  register_word("{", word_beginfn);
+  register_word("}", word_endfn)->flags |= IS_IMMEDIATE;
+  register_word("defn", word_defn);
 #ifdef HOST_NOTFORTH
   register_word("bye", word_bye);
 #endif

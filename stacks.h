@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#include "dictionary.h"
+
 typedef intptr_t Cell;
 extern Cell STACK[];
 extern Cell SP;
@@ -11,3 +13,8 @@ extern Cell SP;
 Cell pop();
 Cell peek();
 void push(Cell);
+
+void execute_word(Word*);
+
+void defn_begin();
+Word* defn_end();

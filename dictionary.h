@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+typedef void (*WordImpl)(void);
+
 // Definition of a !Forth Word
 typedef struct Word {
   // Pointer to next entry in the dict; NULL at end of dict.
@@ -10,7 +12,7 @@ typedef struct Word {
   // Pointer to the function to execute for this word. For precompiled words
   // this is going to be a C function of no args that implements it.
   // For RAM words this is going to be a Word*[] implementing it.
-  void (*execute)(void);
+  WordImpl execute;
   // Pointer to the name of the word. For precompiled words this is a string
   // constant. For RAM words this is malloc'd somewhere, probably.
   const char * name;
@@ -34,6 +36,5 @@ typedef enum WordFlags {
 extern Word* DICTIONARY;
 
 Word* find_word(const char*);
-void execute_word(Word*);
-void register_word(const char*, void (*)(void));
-void register_constant(const char*, intptr_t val);
+Word* register_word(const char*, void (*)(void));
+Word* register_constant(const char*, intptr_t val);
