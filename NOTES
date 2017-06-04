@@ -1,3 +1,47 @@
+## Syntax and semantics
+
+Numbers are accepted in both decimal and hex (0x) formats, positive and negative.
+
+String literals are "foo bar"; :foo is also permitted if the string contains no whitespace. String literals evaluate to the address of the allocated string. This memory WILL NOT BE FREED AUTOMATICALLY. Unless passed to a function that frees it or takes ownership of it, it must be freed by the user.
+
+(TODO: functions)
+
+Everything else is a word. Words are executed immediately when read; if prefixed with &, the address of the word is put on the stack instead.
+
+
+
+How is compilation implemented?
+All repl() does is use push(), find_word() and execute_word(). So we just need to redefine these in compilation mode.
+Entering compilation mode needs to prepare a buffer for the code being compiled. Having done that:
+EITHER
+- compiling a C function emits a pointer to that function
+- compiling a constant emits (pushliteral) (the constant)
+- compiling a notforth function emits (callword) (pointer to the Word*)
+OR
+- compiling a constant emits (pushliteral) (the constant)
+- compiling a function emits a pointer to its Word
+PROBLEM
+we can't distinguish between ramwords and flashwords.
+
+oh god
+ok, so, we're compiling a thing, read a word, call find_word(), append that address to the buffer
+EXCEPT
+what if it's in flash? find_word() copies that to a temporary buffer, then returns the address of the buffer
+so everything that's in flash ends up having the same address
+we can add a new flag, like SELF_IN_FLASH, but that doesn't help us get the real address
+there's also no way to reliably distinguish flash addresses from ram address
+so here's a really dumb idea
+assume that Words are always at least 2-aligned
+then use the LSB of the address as an "in flash" bit
+so, find_word returns the real address if in RAM, or (address | 0x01) if in flash
+call_word checks if (address & 0x01) and copies it into a temporary buffer if so
+buffer needs to be on the stack, otherwise we can't recurse
+so, calling a word turns into
+- check if low bit set; if so, clear it and copy from flash into ram
+- if IS_CONSTANT, push
+- if IS_WORDLIST, iterate execute, calling call_word() on each one
+- otherwise just call word->execute()
+
 Build process:
 - anything with a .ino extension gets catted together, then Arduino headers are prepended, arduino preprocessor runs, *then* it gets fed to gcc. So stuff with arduino-specific code should go in .ino files.
 - C files are compiled and then linked in to the final program. So stuff with multiplatform code should go in .c files.
@@ -23,6 +67,7 @@ Similarly, {} if run on the target compiles a wordlist to RAM. If run on the hos
 This means we need a way of mapping words to valid C identifiers. Thought: word_<munged name>, where the name replaces non-alphanumerics with "X%02X" % char.
 
 How do we build the dictionary chain in the generated C code?
+We don't! Make it an array instead. Store (~0) as the pointer in each one after the first. It goes in .data and gets written to EEPROM. Make sure the flag NEXT_IN_FLASH is properly set for each one. At initialization time we should probably tack on one last one with NEXT_IN_FLASH set to make sure everything works properly.
 
 // Top level loop:
 // - read a word
