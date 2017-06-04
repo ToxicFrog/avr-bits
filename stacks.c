@@ -15,8 +15,9 @@ size_t STACKP = 0; // points to the empty slot just above the last stack slot
 // It's up to the user to call defn to give it one, if they want.
 Word* compiling = NULL;
 
-#define WORD_EOF ((Word*)0x0000)
-#define WORD_PUSHLITERAL ((Word*)0x0001)
+#define WORD_EOF ((WordImpl)0x0000)
+#define WORD_PUSHLITERAL ((WordImpl)0x0001)
+#define WORD_CALLWORD ((WordImpl)0x0002)
 
 Cell peek() {
   return STACK[STACKP-1];
@@ -34,22 +35,38 @@ void push(Cell val) {
   STACK[STACKP++] = val;
 }
 
+Word flashbuf;
+
 void execute_word(Word* word) {
   if (compiling && !(word->flags & IS_IMMEDIATE)) {
-    STACK[STACKP++] = (Cell)word;
+    if (word->flags & IS_WORDLIST) {
+      STACK[STACKP++] = (Cell)WORD_CALLWORD;
+      compiling->flags++;
+    }
+    STACK[STACKP++] = (Cell)word->execute;
     compiling->flags++;
     return;
   }
 
+  // Immediate execution, or not in compile mode.
   if (word->flags & IS_CONSTANT) {
+    // Constants store the value in word->execute, so just push that.
     push((intptr_t)word->execute);
   } else if (word->flags & IS_WORDLIST) {
-    Word** opcodes = (Word**)word->execute;
+    // Wordlists make word->execute a pointer to an array of WordImpls.
+    // Each one is either:
+    // WORD_EOF: stop executing
+    // WORD_PUSHLITERAL <val>: push val onto the data stack
+    // WORD_CALLWORD <ptr>: treat ptr as a Word* and execute it
+    // or a pointer to a WordImpl that should be called directly.
+    WordImpl* opcodes = (WordImpl*)word->execute;
     for (int IP = 0; opcodes[IP] != WORD_EOF; ++IP) {
       if (opcodes[IP] == WORD_PUSHLITERAL) {
         push((Cell)opcodes[++IP]);
+      } else if (opcodes[IP] == WORD_CALLWORD) {
+        execute_word((Word*)opcodes[++IP]);
       } else {
-        execute_word(opcodes[IP]);
+        opcodes[IP]();
       }
     }
   } else {

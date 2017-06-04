@@ -8,23 +8,24 @@
 
 Word* DICTIONARY = NULL;
 
+#ifndef HOST_NOTFORTH
+static Word flashbuf;
+#endif
 // Given a Word*, find the next word in the dictionary. Return NULL if this was the last one.
 Word* next_word(Word* word) {
+#ifndef HOST_NOTFORTH
   if (word->flags & NEXT_IN_FLASH) {
-    println("next_word: NEXT_IN_FLASH not implemented");
-    // FIXME
-    return NULL;
-  } else if (word->next == WORD_IN_ARRAY) {
-    return word-1;
-  } else {
-    return word->next;
+    memcpy_P(&flashbuf, word->next, sizeof(Word));
+    return &flashbuf;
+    // TODO: check for NAME_IN_FLASH here too
   }
+#endif
+  return word->next;
 }
 
 Word* find_word(const char* name) {
   Word* word = DICTIONARY;
   while (word) {
-    // FIXME: check for NAME_IN_FLASH here
     if (word->name && strcmp(word->name, name) == 0) {
       return word;
     }

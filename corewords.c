@@ -1,7 +1,10 @@
 // Core words for notforth.
 
-// #include <stdio.h>
-// #include <stdlib.h>
+#ifndef HOST_NOTFORTH
+#include <avr/pgmspace.h>
+#else
+#define PROGMEM
+#endif
 
 #include "dictionary.h"
 #include "tty.h"
@@ -111,33 +114,38 @@ void word_defn() {
   fn->name = name;
 }
 
-Word CORE_WORDS[] = {
-  { NULL, word_printnum, ".", 0 },
-  { WORD_IN_ARRAY, word_printstr, "s.", 0 },
-  { WORD_IN_ARRAY, word_stack, ".s", 0 },
+const PROGMEM Word CORE_WORDS[] = {
+  { NULL, word_printnum, ".", SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+0), word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+1), word_stack, ".s", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { WORD_IN_ARRAY, word_beginfn, "{", 0 },
-  { WORD_IN_ARRAY, word_endfn, "}", IS_IMMEDIATE },
-  { WORD_IN_ARRAY, word_defn, "defn", 0 },
-  { WORD_IN_ARRAY, word_const, "const", 0 },
+  { (Word*)(CORE_WORDS+2), word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+3), word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
+  { (Word*)(CORE_WORDS+4), word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+5), word_const, "const", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { WORD_IN_ARRAY, word_dup, "dup", 0 },
+  { (Word*)(CORE_WORDS+6), word_dup, "dup", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { WORD_IN_ARRAY, word_add, "+", 0 },
-  { WORD_IN_ARRAY, word_sub, "-", 0 },
-  { WORD_IN_ARRAY, word_mul, "*", 0 },
-  { WORD_IN_ARRAY, word_div, "/", 0 },
-  { WORD_IN_ARRAY, word_mod, "%", 0 },
+  { (Word*)(CORE_WORDS+7), word_add, "+", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+8), word_sub, "-", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+9), word_mul, "*", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+10), word_div, "/", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+11), word_mod, "%", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { WORD_IN_ARRAY, word_peek, "?", 0 },
-  { WORD_IN_ARRAY, word_poke, "!", 0 },
+  { (Word*)(CORE_WORDS+12), word_peek, "?", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+13), word_poke, "!", NEXT_IN_FLASH | SELF_IN_FLASH },
 
 #ifdef HOST_NOTFORTH
-  { WORD_IN_ARRAY, word_bye, "bye", 0 },
+  #define LAST_DICT_IDX 15
+  { (Word*)(CORE_WORDS+14), word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
+#else
+  #define LAST_DICT_IDX 14
 #endif
 };
 
+#define LAST_DICT CORE_WORDS
+
 void load_core_words() {
-  DICTIONARY = CORE_WORDS + (sizeof(CORE_WORDS)/sizeof(Word)) - 1;
-  register_word("words", word_words);//->flags |= NEXT_IN_FLASH;
+  DICTIONARY = &LAST_DICT[LAST_DICT_IDX];
+  register_word("words", word_words)->flags |= NEXT_IN_FLASH;
 }
