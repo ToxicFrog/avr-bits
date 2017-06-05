@@ -95,6 +95,34 @@ void word_const() {
   // embeds the constant in the generated function using PUSHLITERAL.
   register_word((const char*)pop(), value)->flags |= IS_CONSTANT | IS_IMMEDIATE;
 }
+
+void word_list() {
+  Word* word = (Word*)pop();
+  print("# word ");
+  if (word->flags & NAME_IN_FLASH) {
+    printstr_P(word->name); println("");
+  } else {
+    println(word->name);
+  }
+  if (word->flags & IS_CONSTANT) {
+    print("constant "); printint((intptr_t)word->execute); println("");
+  } else if (word->flags & IS_WORDLIST) {
+    WordImpl* op = (WordImpl*)word->execute;
+    while (*op != NULL) {
+      printint((intptr_t)*op);
+      if (*op == (WordImpl)0x0001) {
+        print(" pushliteral "); printint((intptr_t)*(++op)); println("");
+      } else if (*op == (WordImpl)0x0002) {
+        print(" call word@"); printint((intptr_t)*(++op)); println("");
+      } else {
+        print(" call C@"); printint((intptr_t)*op); println("");
+      }
+      ++op;
+    }
+  } else {
+    print("call C@"); printint((intptr_t)word->execute); println("");
+  }
+  println("# end");
 }
 
 #ifdef LINUX
@@ -161,4 +189,5 @@ const PROGMEM Word CORE_WORDS[] = {
 void load_core_words() {
   DICTIONARY = (Word*)&LAST_DICT[LAST_DICT_IDX];  // cast to remove the const
   register_word("words", word_words)->flags |= NEXT_IN_FLASH;
+  register_word("list", word_list);
 }
