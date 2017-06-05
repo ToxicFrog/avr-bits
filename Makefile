@@ -5,7 +5,7 @@ SRCS=$(wildcard *.c)
 HDRS=$(wildcard *.h)
 
 notforth: ${SRCS} ${HDRS}
-	gcc -DLINUX -Wall -Werror -g -o notforth ${SRCS}
+	gcc -DLINUX -Wall -Werror -g -O0 -o notforth ${SRCS}
 
 debug: notforth
 	gdb -ex run notforth
