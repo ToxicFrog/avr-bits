@@ -9,19 +9,53 @@ String literals are "foo bar"; :foo is also permitted if the string contains no 
 Everything else is a word. Words are executed immediately when read; if prefixed with &, the address of the word is put on the stack instead.
 
 
+## Compiling C functions
 
-How is compilation implemented?
-All repl() does is use push(), find_word() and execute_word(). So we just need to redefine these in compilation mode.
-Entering compilation mode needs to prepare a buffer for the code being compiled. Having done that:
-EITHER
-- compiling a C function emits a pointer to that function
-- compiling a constant emits (pushliteral) (the constant)
-- compiling a notforth function emits (callword) (pointer to the Word*)
-OR
-- compiling a constant emits (pushliteral) (the constant)
-- compiling a function emits a pointer to its Word
-PROBLEM
-we can't distinguish between ramwords and flashwords.
+:builtins.nf compile-to
+Writes definitions to builtins.nf.c, declarations to builtins.nf.h, and static initializers for the dictionary to builtins.nf.words.
+
+0 compile-to
+Turns off compilation.
+
+Compiling C: :dup { "push(peek());" } cdef
+cdef pops the function, which should consist solely of string literals
+grabs all the strings, joins them with \n
+wraps them in a function definition and outputs them
+So the whole thing ends up being:
+
+    // builtins.nf.h
+    void word_dup();
+
+    // builtins.nf.words
+    { NULL, word_dup_impl, word_dup_name, NEXT_IN_FLASH | NAME_IN_FLASH | SELF_IN_FLASH },
+
+    // builtins.nf.c
+    const PROGMEM char word_dup_name[] = "dup";
+    void word_dup_impl() {
+      push(peek());
+    }
+
+The compiled Word is duly entered into the dictionary, but the allocated strings that make up its body are freed and ->execute is relinked to `bye` (or, once we have it, `error`) -- this allows future function definitions in that session to find it, but makes it uncallable.
+
+Compiling notforth: `:double { 2 * } defn`
+defn does the usual thing, except if compiled for the host *and* compile-to is set, it also emits C code
+.nf.h and .nf.words look the same except the latter has IS_WORDLIST set, but here's the .nf.c:
+
+    void word_double() {
+      push(2);
+      word_X2A();
+    }
+
+It assumes that all functions, C or notforth, it can call directly rather than going through find_word()
+
+Problem: how do we handle string literals? By the time push() sees them they're just a pointer, so we have to do something
+different in the parser here. Defer that problem for now, but it'll be an issue later.
+
+## Calling wordlists in flash
+
+We don't need to worry about this, since even wordlist functions, if compiled on the host, turn into C functions.
+
+## Compiling pointers to Words in flash
 
 oh god
 ok, so, we're compiling a thing, read a word, call find_word(), append that address to the buffer
@@ -31,7 +65,7 @@ so everything that's in flash ends up having the same address
 we can add a new flag, like SELF_IN_FLASH, but that doesn't help us get the real address
 there's also no way to reliably distinguish flash addresses from ram address
 so here's a really dumb idea
-assume that Words are always at least 2-aligned
+assume that Words are always at least 2-aligned -- THIS TURNS OUT TO BE WRONG, THEY AREN'T, EVERYONE PANIC
 then use the LSB of the address as an "in flash" bit
 so, find_word returns the real address if in RAM, or (address | 0x01) if in flash
 call_word checks if (address & 0x01) and copies it into a temporary buffer if so
