@@ -1,6 +1,6 @@
 #include "tty.h"
 
-#ifdef HOST_NOTFORTH
+#ifdef LINUX
 
 #include <stdio.h>
 
@@ -16,7 +16,7 @@ void printint(const int n) {
   printf("%d", n);
 }
 
-#endif  // HOST_NOTFORTH
+#endif  // LINUX
 
 // Read up to len bytes from input and store them in buf. Stops when buf is
 // full or newline is entered. Null terminates buf (so buf should have size len+1).

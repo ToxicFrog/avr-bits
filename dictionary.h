@@ -20,7 +20,7 @@ typedef struct Word {
 } Word;
 
 typedef enum WordFlags {
-#ifdef HOST_NOTFORTH
+#ifdef LINUX
   // Host doesn't have harvard architecture, so nothing is ever "in flash"
   NEXT_IN_FLASH = 0,
   NAME_IN_FLASH = 0,

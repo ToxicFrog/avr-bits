@@ -1,9 +1,11 @@
 all: notforth
 
-SRCS=notforth.c dictionary.c repl.c tty.c corewords.c stacks.c
+SRCS=$(wildcard *.c)
+# notforth.c dictionary.c repl.c tty.c corewords.c stacks.c
+HDRS=$(wildcard *.h)
 
-notforth: ${SRCS}
-	gcc -DHOST_NOTFORTH -Wall -Werror -g -o notforth ${SRCS}
+notforth: ${SRCS} ${HDRS}
+	gcc -DLINUX -Wall -Werror -g -o notforth ${SRCS}
 
 debug: notforth
 	gdb -ex run notforth

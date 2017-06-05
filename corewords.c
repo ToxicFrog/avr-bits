@@ -1,6 +1,8 @@
 // Core words for notforth.
 
-#ifndef HOST_NOTFORTH
+#include "config.h"
+
+#ifdef ARDUINO
 #include <avr/pgmspace.h>
 #else
 #define PROGMEM
@@ -86,7 +88,7 @@ void word_const() {
   register_word((const char*)pop(), value)->flags |= IS_CONSTANT;
 }
 
-#ifdef HOST_NOTFORTH
+#ifdef LINUX
 void word_bye() {
   exit(0);
 }
@@ -135,7 +137,7 @@ const PROGMEM Word CORE_WORDS[] = {
   { (Word*)(CORE_WORDS+12), word_peek, "?", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)(CORE_WORDS+13), word_poke, "!", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-#ifdef HOST_NOTFORTH
+#ifdef LINUX
   #define LAST_DICT_IDX 15
   { (Word*)(CORE_WORDS+14), word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 #else
@@ -146,6 +148,6 @@ const PROGMEM Word CORE_WORDS[] = {
 #define LAST_DICT CORE_WORDS
 
 void load_core_words() {
-  DICTIONARY = &LAST_DICT[LAST_DICT_IDX];
+  DICTIONARY = (Word*)&LAST_DICT[LAST_DICT_IDX];  // cast to remove the const
   register_word("words", word_words)->flags |= NEXT_IN_FLASH;
 }

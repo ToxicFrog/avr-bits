@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <ctype.h>  // isspace, etc
 #include <setjmp.h>
 #include <string.h>
@@ -8,16 +10,12 @@
 #include "tty.h"
 #include "stacks.h"
 
-#define debuglog(...)
-
 jmp_buf catch;
 
 void die(const char * msg) {
   println(msg);
   longjmp(catch, 1);
 }
-
-#define STRING_MAX 32
 
 int isquote(int c) {
   return c == '"';
@@ -75,8 +73,6 @@ char * run_word(char * buf) {
   execute_word(word);
   return end;
 }
-
-#define INPUT_BUFSIZE 80
 
 // Execute the code inside buf.
 // MODIFIES THE CONTENTS OF BUF. Handle with care.

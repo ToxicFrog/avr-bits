@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>  // memcpy
 
@@ -7,7 +9,7 @@
 // Core library that does the actual execution of words and provides functions
 // for interacting with the stacks.
 
-Cell STACK[32];
+Cell STACK[STACKSIZE];
 size_t STACKP = 0; // points to the empty slot just above the last stack slot
 
 // Stack of Word definitions that we're compiling. When we finish a word, it
@@ -52,6 +54,7 @@ void execute_word(Word* word) {
   if (word->flags & IS_CONSTANT) {
     // Constants store the value in word->execute, so just push that.
     push((intptr_t)word->execute);
+
   } else if (word->flags & IS_WORDLIST) {
     // Wordlists make word->execute a pointer to an array of WordImpls.
     // Each one is either:
@@ -87,9 +90,11 @@ void defn_begin() {
 
 Word* defn_end() {
   if (!compiling) return NULL; //die("} with no corresponding {");
+
   // Pop it from the compilation stack.
   Word* word = compiling;
   compiling = word->next;
+
   // Copy the wordlist off the stack.
   // The top word->flags stack cells contain instructions.
   // This relies on Cell and Word* having the same size, but since Cell is intptr_t that should be the case?
@@ -97,10 +102,13 @@ Word* defn_end() {
   Word* body = calloc(len + 1, sizeof(Word*));
   memcpy(body, &STACK[STACKP-len], len * sizeof(Cell));
   word->execute = (WordImpl)body;
+
   // Drop the wordlist from the stack.
   STACKP -= len;
+
   // Set flags.
   word->flags = IS_WORDLIST;
+
   // Link the word into the dictionary.
   word->next = DICTIONARY;
   DICTIONARY = word;

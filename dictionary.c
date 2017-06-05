@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <stdlib.h>   // NULL, malloc
 #include <stdint.h>
 #include <string.h>   // strcmp, strlen
@@ -8,12 +10,10 @@
 
 Word* DICTIONARY = NULL;
 
-#ifndef HOST_NOTFORTH
-static Word flashbuf;
-#endif
 // Given a Word*, find the next word in the dictionary. Return NULL if this was the last one.
 Word* next_word(Word* word) {
-#ifndef HOST_NOTFORTH
+#ifdef ARDUINO
+  static Word flashbuf;
   if (word->flags & NEXT_IN_FLASH) {
     memcpy_P(&flashbuf, word->next, sizeof(Word));
     return &flashbuf;
@@ -35,7 +35,6 @@ Word* find_word(const char* name) {
 }
 
 Word* register_word(const char* name, void (*exec)(void)) {
-  // print("register: "); println(name);
   Word* word = malloc(sizeof(Word));
   word->next = DICTIONARY;
   word->execute = exec;
