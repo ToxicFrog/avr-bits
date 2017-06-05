@@ -20,19 +20,14 @@ typedef struct Word {
 } Word;
 
 typedef enum WordFlags {
-#ifdef LINUX
-  // Host doesn't have harvard architecture, so nothing is ever "in flash"
-  NEXT_IN_FLASH = 0,
-  NAME_IN_FLASH = 0,
-  SELF_IN_FLASH = 0,
-#else
   // `next` pointer is to .progmem rather than to RAM
   NEXT_IN_FLASH = 1 << 0,
   // `name` pointer is to .progmem rather than to RAM; name is at most 32 bytes including null terminator.
   NAME_IN_FLASH = 1 << 1,
   // The word itself is stored in flash, and what we're looking at is a temporary copy in RAM.
+  // Also implies that `next` is the offset from the address of this word to the address of the next,
+  // rather than an absolute pointer.
   SELF_IN_FLASH = 1 << 2,
-#endif
   // `execute` is a constant to be pushed now rather than a function pointer
   IS_CONSTANT   = 1 << 3,
   // `execute` is a pointer to an opcode array to be executed by call_word rather than a function pointer

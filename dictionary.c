@@ -13,11 +13,18 @@ Word* DICTIONARY = NULL;
 // Given a Word*, find the next word in the dictionary. Return NULL if this was the last one.
 Word* next_word(Word* word) {
   static Word wordbuf;
+  Word* next = word->next;
   if (word->flags & NEXT_IN_FLASH) {
-    memcpy_P(&wordbuf, word->next, sizeof(Word));
-    return &wordbuf;
+    // HERE IS WHERE THE SPIDERS HAPPEN
+    // if the old word was in wordbuf, we OVERWRITE IT HERE
+    // and then our attempts to use word->next below fail
+    memcpy_P(&wordbuf, next, sizeof(Word));
+    if (wordbuf.next && wordbuf.flags & SELF_IN_FLASH) {
+      wordbuf.next = next + (size_t)wordbuf.next;
+    }
+    next = &wordbuf;
   }
-  return word->next;
+  return next;
 }
 
 int word_name_eq(const Word* word, const char* name) {

@@ -167,38 +167,34 @@ void word_defn() {
 const PROGMEM char word_const_name[] = "const";
 
 const PROGMEM Word CORE_WORDS[] = {
-  { NULL, word_printnum, ".", SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+0), word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+1), word_stack, ".s", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_printnum, ".", SELF_IN_FLASH | NEXT_IN_FLASH },
+  { (Word*)1, word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_stack, ".s", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { (Word*)(CORE_WORDS+2), word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
-  { (Word*)(CORE_WORDS+3), word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-  { (Word*)(CORE_WORDS+4), word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+5), word_const, word_const_name, NEXT_IN_FLASH | SELF_IN_FLASH | NAME_IN_FLASH },
+  { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
+  { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
+  { (Word*)1, word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_const, word_const_name, NEXT_IN_FLASH | SELF_IN_FLASH | NAME_IN_FLASH },
 
-  { (Word*)(CORE_WORDS+6), word_dup, "dup", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_dup, "dup", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { (Word*)(CORE_WORDS+7), word_add, "+", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+8), word_sub, "-", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+9), word_mul, "*", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+10), word_div, "/", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+11), word_mod, "%", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_add, "+", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_sub, "-", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_mul, "*", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_div, "/", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_mod, "%", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { (Word*)(CORE_WORDS+12), word_peek, "?", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+13), word_poke, "!", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_peek, "?", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_poke, "!", NEXT_IN_FLASH | SELF_IN_FLASH },
 
 #ifdef LINUX
-  #define LAST_DICT_IDX 15
-  { (Word*)(CORE_WORDS+14), word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
-#else
-  #define LAST_DICT_IDX 14
+  { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 #endif
+
+  { NULL, word_list, "list", SELF_IN_FLASH },
 };
 
-#define LAST_DICT CORE_WORDS
-
 void load_core_words() {
-  DICTIONARY = (Word*)&LAST_DICT[LAST_DICT_IDX];  // cast to remove the const
+  DICTIONARY = (Word*)CORE_WORDS;  // cast to remove the const
   register_word("words", word_words)->flags |= NEXT_IN_FLASH;
-  register_word("list", word_list);
 }
