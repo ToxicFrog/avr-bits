@@ -76,15 +76,23 @@ void printstr_P(const char * str) {
   print(buf);
 }
 
+void printname(const Word* word) {
+  if (!word->name) {
+    print("(anonymous)");
+    return;
+  }
+  if (word->flags & NAME_IN_FLASH) {
+    printstr_P(word->name);
+  } else {
+    print(word->name);
+  }
+}
+
 void word_words() {
   for (Word* word = DICTIONARY; word; word = next_word(word)) {
     printint((intptr_t)word); print(":"); printint((intptr_t)word->execute);
     print(" ");
-    if (word->flags & NAME_IN_FLASH) {
-      printstr_P(word->name);
-    } else {
-      print(word->name);
-    }
+    printname(word);
     print(" ["); printint(word->flags); println("]");
   }
 }
@@ -96,26 +104,29 @@ void word_const() {
   register_word((const char*)pop(), value)->flags |= IS_CONSTANT | IS_IMMEDIATE;
 }
 
+void impl_to_wordname(WordImpl impl) {
+  for (Word* word = DICTIONARY; word; word = next_word(word)) {
+    if (word->execute == impl) {
+      print(" :"); printname(word);
+      return;
+    }
+  }
+}
+
 void word_list() {
   Word* word = (Word*)pop();
-  print("# word ");
-  if (word->flags & NAME_IN_FLASH) {
-    printstr_P(word->name); println("");
-  } else {
-    println(word->name);
-  }
+  print("# word "); printname(word); println("");
   if (word->flags & IS_CONSTANT) {
     print("constant "); printint((intptr_t)word->execute); println("");
   } else if (word->flags & IS_WORDLIST) {
     WordImpl* op = (WordImpl*)word->execute;
     while (*op != NULL) {
-      printint((intptr_t)*op);
       if (*op == (WordImpl)0x0001) {
-        print(" pushliteral "); printint((intptr_t)*(++op)); println("");
+        print("pushliteral "); printint((intptr_t)*(++op)); println("");
       } else if (*op == (WordImpl)0x0002) {
-        print(" call word@"); printint((intptr_t)*(++op)); println("");
+        print("call word@"); printint((intptr_t)*(++op)); print(" "); printname((Word*)*op); println("");
       } else {
-        print(" call C@"); printint((intptr_t)*op); println("");
+        print("call C@"); printint((intptr_t)*op); impl_to_wordname(*op); println("");
       }
       ++op;
     }
