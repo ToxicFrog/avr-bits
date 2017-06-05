@@ -91,7 +91,10 @@ void word_words() {
 
 void word_const() {
   const WordImpl value = (WordImpl)pop();
-  register_word((const char*)pop(), value)->flags |= IS_CONSTANT;
+  // Constants are IMMEDIATE so that executing them during a function definition
+  // embeds the constant in the generated function using PUSHLITERAL.
+  register_word((const char*)pop(), value)->flags |= IS_CONSTANT | IS_IMMEDIATE;
+}
 }
 
 #ifdef LINUX

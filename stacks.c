@@ -17,9 +17,9 @@ size_t STACKP = 0; // points to the empty slot just above the last stack slot
 // It's up to the user to call defn to give it one, if they want.
 Word* compiling = NULL;
 
-#define WORD_EOF ((WordImpl)0x0000)
-#define WORD_PUSHLITERAL ((WordImpl)0x0001)
-#define WORD_CALLWORD ((WordImpl)0x0002)
+#define OP_EOF ((WordImpl)0x0000)
+#define OP_PUSHLITERAL ((WordImpl)0x0001)
+#define OP_CALLWORD ((WordImpl)0x0002)
 
 Cell peek() {
   return STACK[STACKP-1];
@@ -31,7 +31,7 @@ Cell pop() {
 
 void push(Cell val) {
   if (compiling) {
-    STACK[STACKP++] = (Cell)WORD_PUSHLITERAL;
+    STACK[STACKP++] = (Cell)OP_PUSHLITERAL;
     compiling->flags += 2;  // one for PUSHLITERAL and one for the actual value
   }
   STACK[STACKP++] = val;
@@ -42,7 +42,7 @@ Word flashbuf;
 void execute_word(Word* word) {
   if (compiling && !(word->flags & IS_IMMEDIATE)) {
     if (word->flags & IS_WORDLIST) {
-      STACK[STACKP++] = (Cell)WORD_CALLWORD;
+      STACK[STACKP++] = (Cell)OP_CALLWORD;
       compiling->flags++;
     }
     STACK[STACKP++] = (Cell)word->execute;
@@ -58,15 +58,15 @@ void execute_word(Word* word) {
   } else if (word->flags & IS_WORDLIST) {
     // Wordlists make word->execute a pointer to an array of WordImpls.
     // Each one is either:
-    // WORD_EOF: stop executing
-    // WORD_PUSHLITERAL <val>: push val onto the data stack
-    // WORD_CALLWORD <ptr>: treat ptr as a Word* and execute it
+    // OP_EOF: stop executing
+    // OP_PUSHLITERAL <val>: push val onto the data stack
+    // OP_CALLWORD <ptr>: treat ptr as a Word* and execute it
     // or a pointer to a WordImpl that should be called directly.
     WordImpl* opcodes = (WordImpl*)word->execute;
-    for (int IP = 0; opcodes[IP] != WORD_EOF; ++IP) {
-      if (opcodes[IP] == WORD_PUSHLITERAL) {
+    for (int IP = 0; opcodes[IP] != OP_EOF; ++IP) {
+      if (opcodes[IP] == OP_PUSHLITERAL) {
         push((Cell)opcodes[++IP]);
-      } else if (opcodes[IP] == WORD_CALLWORD) {
+      } else if (opcodes[IP] == OP_CALLWORD) {
         execute_word((Word*)opcodes[++IP]);
       } else {
         opcodes[IP]();
