@@ -56,6 +56,13 @@ char * run_word(char * buf) {
     return readstr(buf+1, isspace);
   }
 
+  // Is it addressof?
+  char addressof = false;
+  if (buf[0] == '&') {
+    buf++;
+    addressof = true;
+  }
+
   // Otherwise it's a word.
   char * end = buf;
   while (!isspace(*end) && *end != '\0') ++end;
@@ -70,7 +77,11 @@ char * run_word(char * buf) {
     print("Word not found in dictionary: ");
     die(buf);
   }
-  execute_word(word);
+  if (addressof) {
+    push((intptr_t)word);
+  } else {
+    execute_word(word);
+  }
   return end;
 }
 
