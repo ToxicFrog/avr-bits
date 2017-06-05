@@ -171,7 +171,7 @@ const PROGMEM Word CORE_WORDS[] = {
   { (Word*)(CORE_WORDS+0), word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)(CORE_WORDS+1), word_stack, ".s", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { (Word*)(CORE_WORDS+2), word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+2), word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)(CORE_WORDS+3), word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
   { (Word*)(CORE_WORDS+4), word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)(CORE_WORDS+5), word_const, word_const_name, NEXT_IN_FLASH | SELF_IN_FLASH | NAME_IN_FLASH },
