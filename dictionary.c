@@ -12,21 +12,26 @@ Word* DICTIONARY = NULL;
 
 // Given a Word*, find the next word in the dictionary. Return NULL if this was the last one.
 Word* next_word(Word* word) {
-#ifdef ARDUINO
-  static Word flashbuf;
+  static Word wordbuf;
   if (word->flags & NEXT_IN_FLASH) {
-    memcpy_P(&flashbuf, word->next, sizeof(Word));
-    return &flashbuf;
-    // TODO: check for NAME_IN_FLASH here too
+    memcpy_P(&wordbuf, word->next, sizeof(Word));
+    return &wordbuf;
   }
-#endif
   return word->next;
+}
+
+int word_name_eq(const Word* word, const char* name) {
+  if (!word->name) return false;
+  if (word->flags & NAME_IN_FLASH) {
+    return strcmp_P(name, word->name) == 0;
+  }
+  return strcmp(name, word->name) == 0;
 }
 
 Word* find_word(const char* name) {
   Word* word = DICTIONARY;
   while (word) {
-    if (word->name && strcmp(word->name, name) == 0) {
+    if (word_name_eq(word, name)) {
       return word;
     }
     word = next_word(word);

@@ -2,12 +2,6 @@
 
 #include "config.h"
 
-#ifdef ARDUINO
-#include <avr/pgmspace.h>
-#else
-#define PROGMEM
-#endif
-
 #include "dictionary.h"
 #include "tty.h"
 #include "stacks.h"
@@ -76,10 +70,22 @@ void word_dup() {
 
 //// Control words ////
 
+void printstr_P(const char * str) {
+  char buf[32]; // FIXME
+  strcpy_P(buf, str);
+  print(buf);
+}
+
 void word_words() {
   for (Word* word = DICTIONARY; word; word = next_word(word)) {
     printint((intptr_t)word); print(":"); printint((intptr_t)word->execute);
-    print(" "); print(word->name); print(" ["); printint(word->flags); println("]");
+    print(" ");
+    if (word->flags & NAME_IN_FLASH) {
+      printstr_P(word->name);
+    } else {
+      print(word->name);
+    }
+    print(" ["); printint(word->flags); println("]");
   }
 }
 
@@ -116,6 +122,8 @@ void word_defn() {
   fn->name = name;
 }
 
+const PROGMEM char word_const_name[] = "const";
+
 const PROGMEM Word CORE_WORDS[] = {
   { NULL, word_printnum, ".", SELF_IN_FLASH },
   { (Word*)(CORE_WORDS+0), word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
@@ -124,7 +132,7 @@ const PROGMEM Word CORE_WORDS[] = {
   { (Word*)(CORE_WORDS+2), word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)(CORE_WORDS+3), word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
   { (Word*)(CORE_WORDS+4), word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)(CORE_WORDS+5), word_const, "const", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)(CORE_WORDS+5), word_const, word_const_name, NEXT_IN_FLASH | SELF_IN_FLASH | NAME_IN_FLASH },
 
   { (Word*)(CORE_WORDS+6), word_dup, "dup", NEXT_IN_FLASH | SELF_IN_FLASH },
 
