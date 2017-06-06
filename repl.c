@@ -17,8 +17,12 @@ void die(const char * msg) {
   longjmp(catch, 1);
 }
 
-int isquote(int c) {
+int isdquote(int c) {
   return c == '"';
+}
+
+int issquote(int c) {
+  return c == '\'';
 }
 
 char * readstr(char * buf, int (*ateof)(int)) {
@@ -50,7 +54,10 @@ char * run_word(char * buf) {
 
   // Is it a string literal?
   if (buf[0] == '"') {
-    return readstr(buf+1, isquote);
+    return readstr(buf+1, isdquote);
+  }
+  if (buf[0] == '\'') {
+    return readstr(buf+1, issquote);
   }
   if (buf[0] == ':') {
     return readstr(buf+1, isspace);

@@ -24,13 +24,18 @@ void printint(const int n) {
 void readline(char* buf, size_t len) {
   size_t n = 0;
   char comment = '\0';
+  char string = '\0';
   for (char ch = next_char();
        n < len && ch != '\n';
        ch = next_char()) {
     if (ch == '\b' || ch == '\x7F') {
       buf[--n] = '\0'; continue;
     }
-    if (ch == '#' || ch == '(') comment = ch;
+    if (ch == '"' || ch == '\'') {
+      if (string && string == ch) string = '\0';
+      else if (!string) string = ch;
+    }
+    if (!string && (ch == '#' || ch == '(')) comment = ch;
     if (!comment) buf[n++] = ch;
     if (ch == ')' && comment == '(') comment = '\0';
   }
