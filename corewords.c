@@ -6,9 +6,9 @@
 #include "tty.h"
 #include "stacks.h"
 
-#ifndef NO_BUILTINS
-#include "builtins/all.impl"
-#endif
+#define ENABLE_BUILTINS
+#include "builtins/all.c"
+#undef ENABLE_BUILTINS
 
 //// Control words ////
 
@@ -186,14 +186,14 @@ void word_endfn() {
 const PROGMEM Word CORE_WORDS[] = {
   { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-  { (Word*)1, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  #ifndef NO_BUILTINS
-  #include "builtins/all.dict"
-  #endif
+  #define ENABLE_BUILTINS
+  #include "builtins/all.h"
+  #undef ENABLE_BUILTINS
 
 #ifdef LINUX
+  { (Word*)1, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 #endif
 
