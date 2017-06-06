@@ -13,9 +13,10 @@
 //// Control words ////
 
 void printstr_P(const char * str) {
-  char buf[32]; // FIXME
-  strcpy_P(buf, str);
-  print(buf);
+  char ch[2] = { 0, 0 };
+  while ((ch[0] = pgm_read_byte(str++))) {
+    print(ch);
+  }
 }
 
 void printname(const Word* word) {
