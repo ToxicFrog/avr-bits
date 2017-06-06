@@ -6,67 +6,9 @@
 #include "tty.h"
 #include "stacks.h"
 
-//// IO words ////
-
-void word_printnum() {
-  printint(pop()); println("");
-}
-
-void word_printstr() {
-  println((const char*)pop());
-}
-
-void word_stack() {
-  print("Stack size: "); printint(STACKP); println("");
-  for (int i = STACKP-1; i >= 0; --i) {
-    printint(STACK[i]); println("");
-  }
-  println("----");
-}
-
-//// Math words ////
-
-void word_add() {
-  int x = pop(), y = pop();
-  push(x+y);
-}
-
-void word_sub() {
-  int x = pop(), y = pop();
-  push(x-y);
-}
-
-void word_mul() {
-  int x = pop(), y = pop();
-  push(x*y);
-}
-
-void word_div() {
-  int x = pop(), y = pop();
-  push(x/y);
-}
-
-void word_mod() {
-  int x = pop(), y = pop();
-  push(x%y);
-}
-
-//// Memory words ////
-
-void word_peek() {
-  int* ptr = (int*)((uint64_t)pop());
-  push(*ptr);
-}
-
-void word_poke() {
-  int* ptr = (int*)((uint64_t)pop());
-  int val = pop();
-  *ptr = val;
-}
-
-void word_dup() {
-  push(peek());
-}
+#ifndef NO_BUILTINS
+#include "builtins/all.impl"
+#endif
 
 //// Control words ////
 
@@ -95,13 +37,6 @@ void word_words() {
     printname(word);
     print(" ["); printint(word->flags); println("]");
   }
-}
-
-void word_const() {
-  const WordImpl value = (WordImpl)pop();
-  // Constants are IMMEDIATE so that executing them during a function definition
-  // embeds the constant in the generated function using PUSHLITERAL.
-  register_word((const char*)pop(), value)->flags |= IS_CONSTANT | IS_IMMEDIATE;
 }
 
 void impl_to_wordname(WordImpl impl) {
@@ -137,9 +72,99 @@ void word_list() {
 }
 
 #ifdef LINUX
+
+#include <stdio.h>
+#include <ctype.h>
+#include <assert.h>
+#include <string.h>
+
 void word_bye() {
   exit(0);
 }
+
+const char * mangle(const char * name) {
+  static char mangled_name[NAMELEN*3+1];
+  // Determine the mangled name
+  char* mch = mangled_name;
+  for (const char* ch = name; *ch; ++ch) {
+    if (isalnum(*ch)) {
+      *(mch++) = *ch;
+    } else {
+      *(mch++) = 'X';
+      mch += sprintf(mch, "%X", *ch);
+    }
+  }
+  *mch = '\0';
+  return mangled_name;
+}
+
+// Each one has two parts, the impl and the header
+// the impl has the form:
+// #includes
+// list of function definitions
+// dictionary fragment definition
+// the header has the form:
+// extern declaration of dictionary fragment
+// redefinition of LAST_DICT and LAST_DICT_LEN macros
+FILE * cimpl = NULL;
+FILE * cdict = NULL;
+char cname[NAMELEN*3+1];
+size_t nrof_cdefs = 0;
+
+void word_cfile() {
+  // write #include impl to the start of the dict?
+  char* name = (char*)pop();
+  if (name) {
+    sprintf(cname, "%s.impl", name);
+    cimpl = fopen(cname, "w");
+    sprintf(cname, "%s.dict", name);
+    cdict = fopen(cname, "w");
+
+    strcpy(cname, mangle(name));
+
+    fprintf(cdict, "// Words from %s\n\n", name);
+    free(name);
+  } else {
+    // Finalize everything.
+
+    Word* cdef = DICTIONARY;
+    while (nrof_cdefs) {
+      nrof_cdefs--;
+      const char* mangled_name = mangle(cdef->name);
+      fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d },\n",
+        mangled_name, mangled_name, cdef->flags & ~IS_WORDLIST);
+      do { cdef = next_word(cdef); } while(!cdef->name);
+    }
+    fclose(cdict);
+    fclose(cimpl);
+  }
+}
+
+// Similar to defn, but assumes the top of the stack is a function full of string
+// literals. Write those out to the C files selected with c/file and save the
+// function itself as a no-op. The strings are freed.
+void word_cdefn() {
+  assert(cimpl);
+  Word* word = (Word*)pop();
+  const char* name = (char*)pop();
+  const char* mangled_name = mangle(name);
+
+  // Write the implementation
+  fprintf(cimpl, "\nconst PROGMEM char word_%s_name[] = \"%s\";\n",
+    mangled_name, name);
+  fprintf(cimpl, "void word_%s_impl() {\n", mangled_name);
+  for (char ** line = (char**)word->execute; *line; line += 2) {
+    fprintf(cimpl, "  %s\n", line[1]); // line[0] is going to be OP_PUSHLITERAL
+  }
+  fprintf(cimpl, "}\n");
+
+  word->name = name;
+  free(word->execute);
+  word->execute = NULL;
+  word->flags = IS_WORDLIST;
+  ++nrof_cdefs;
+}
+
 #endif
 
 // the { that begins a function definition
@@ -158,34 +183,15 @@ void word_endfn() {
   push((Cell)defn_end());
 }
 
-void word_defn() {
-  Word* fn = (Word*)pop();
-  char* name = (char*)pop();
-  fn->name = name;
-}
-
-const PROGMEM char word_const_name[] = "const";
-
 const PROGMEM Word CORE_WORDS[] = {
-  { (Word*)1, word_printnum, ".", SELF_IN_FLASH | NEXT_IN_FLASH },
-  { (Word*)1, word_printstr, "s.", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_stack, ".s", NEXT_IN_FLASH | SELF_IN_FLASH },
-
   { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-  { (Word*)1, word_defn, "defn", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_const, word_const_name, NEXT_IN_FLASH | SELF_IN_FLASH | NAME_IN_FLASH },
+  { (Word*)1, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH },
+  { (Word*)1, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH },
 
-  { (Word*)1, word_dup, "dup", NEXT_IN_FLASH | SELF_IN_FLASH },
-
-  { (Word*)1, word_add, "+", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_sub, "-", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_mul, "*", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_div, "/", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_mod, "%", NEXT_IN_FLASH | SELF_IN_FLASH },
-
-  { (Word*)1, word_peek, "?", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_poke, "!", NEXT_IN_FLASH | SELF_IN_FLASH },
+  #ifndef NO_BUILTINS
+  #include "builtins/all.dict"
+  #endif
 
 #ifdef LINUX
   { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
@@ -196,5 +202,8 @@ const PROGMEM Word CORE_WORDS[] = {
 
 void load_core_words() {
   DICTIONARY = (Word*)CORE_WORDS;  // cast to remove the const
+  // We place `words` outside flash both because we need at least one dictionary
+  // entry in RAM to contain the first NEXT_IN_FLASH, and because it's useful to
+  // have available ~always for troubleshooting issues with flash dictionary traversal.
   register_word("words", word_words)->flags |= NEXT_IN_FLASH;
 }
