@@ -19,17 +19,13 @@ notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
 	gcc -DLINUX -Wall -Werror -g -O0 -o notforth ${SRCS}
 
 builtins/all.c: $(WORDS:%.nf=%.nf.impl)
-	echo "#ifdef ENABLE_BUILTINS" > builtins/all.c
-	cat builtins/*.nf.impl >> builtins/all.c
-	echo "#endif" >> builtins/all.c
+	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
 
 builtins/all.h: $(WORDS:%.nf=%.nf.dict)
-	echo "#ifdef ENABLE_BUILTINS" > builtins/all.h
-	cat builtins/*.nf.dict >> builtins/all.h
-	echo "#endif" >> builtins/all.h
+	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
 
 builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf notforth-bootstrap
-	(cd builtins && ../notforth-bootstrap <../$< )
+	(cd builtins && ../notforth-bootstrap) <$< >/dev/null
 
 notforth-bootstrap: ${SRCS} ${HDRS}
 	gcc -DLINUX -Wall -Werror -g -O0 -o notforth-bootstrap ${SRCS}
