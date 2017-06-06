@@ -1,1 +1,4 @@
 notforth
+notforth-bootstrap
+builtins/*.nf.impl
+builtins/*.nf.dict
