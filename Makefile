@@ -1,6 +1,7 @@
 SRCS=$(wildcard *.c)
 HDRS=$(wildcard *.h)
 WORDS=$(wildcard builtins/*.nf)
+CC=gcc -std=c99 -Wall -Werror -g -O0
 
 all: notforth
 
@@ -16,7 +17,7 @@ clean:
 	rm -f notforth notforth-bootstrap builtins/*.nf.impl builtins/*.nf.dict
 
 notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
-	gcc -DLINUX -Wall -Werror -g -O0 -o notforth ${SRCS}
+	${CC} -DLINUX -o notforth ${SRCS}
 
 builtins/all.c: $(WORDS:%.nf=%.nf.impl)
 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
@@ -28,6 +29,6 @@ builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf notforth-bootstrap
 	(cd builtins && ../notforth-bootstrap) <$< >/dev/null
 
 notforth-bootstrap: ${SRCS} ${HDRS}
-	gcc -DLINUX -Wall -Werror -g -O0 -o notforth-bootstrap ${SRCS}
+	${CC} -DLINUX -o notforth-bootstrap ${SRCS}
 
 .SUFFIXES:
