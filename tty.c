@@ -26,7 +26,7 @@ void readline(char* buf, size_t len) {
   char comment = '\0';
   char string = '\0';
   for (char ch = next_char();
-       n < len && ch != '\n';
+       n < len && (ch != '\n' || string);
        ch = next_char()) {
     if (ch == '\b' || ch == '\x7F') {
       buf[--n] = '\0'; continue;

@@ -146,23 +146,17 @@ void word_cfile() {
 // function itself as a no-op. The strings are freed.
 void word_cdefn() {
   assert(cimpl);
-  Word* word = (Word*)pop();
+  char* body = (char*)pop();
   const char* name = (char*)pop();
   const char* mangled_name = mangle(name);
 
   // Write the implementation
   fprintf(cimpl, "\nconst PROGMEM char word_%s_name[] = \"%s\";\n",
     mangled_name, name);
-  fprintf(cimpl, "void word_%s_impl() {\n", mangled_name);
-  for (char ** line = (char**)word->execute; *line; line += 2) {
-    fprintf(cimpl, "  %s\n", line[1]); // line[0] is going to be OP_PUSHLITERAL
-  }
-  fprintf(cimpl, "}\n");
+  fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
+  free(body);
 
-  word->name = name;
-  free(word->execute);
-  word->execute = NULL;
-  word->flags = IS_WORDLIST;
+  register_word(name, NULL)->flags |= IS_WORDLIST;
   ++nrof_cdefs;
 }
 
