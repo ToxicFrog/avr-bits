@@ -5,6 +5,9 @@ CC=gcc -std=c99 -Wall -Werror -g -O0
 
 all: notforth
 
+test: notforth
+	./notforth < TEST
+
 debug: notforth
 	gdb -ex run notforth
 
@@ -26,7 +29,7 @@ builtins/all.h: $(WORDS:%.nf=%.nf.dict)
 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
 
 builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf notforth-bootstrap
-	(cd builtins && ../notforth-bootstrap) <$< >/dev/null
+	(cd builtins && ../notforth-bootstrap) <$< # >/dev/null
 
 notforth-bootstrap: ${SRCS} ${HDRS}
 	${CC} -DLINUX -o notforth-bootstrap ${SRCS}

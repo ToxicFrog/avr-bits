@@ -5,6 +5,7 @@
 #include "dictionary.h"
 #include "tty.h"
 #include "execute.h"
+#include "compiler.h"
 
 #define ENABLE_BUILTINS
 #include "builtins/all.c"
@@ -72,115 +73,19 @@ void word_list() {
   println("# end");
 }
 
-#ifdef LINUX
-
-#include <stdio.h>
-#include <ctype.h>
-#include <assert.h>
-#include <string.h>
-
 void word_bye() {
+#ifdef LINUX
   exit(0);
-}
-
-const char * mangle(const char * name) {
-  static char mangled_name[NAMELEN*3+1];
-  // Determine the mangled name
-  char* mch = mangled_name;
-  for (const char* ch = name; *ch; ++ch) {
-    if (isalnum(*ch)) {
-      *(mch++) = *ch;
-    } else {
-      *(mch++) = 'X';
-      mch += sprintf(mch, "%X", *ch);
-    }
-  }
-  *mch = '\0';
-  return mangled_name;
-}
-
-// Each one has two parts, the impl and the header
-// the impl has the form:
-// #includes
-// list of function definitions
-// dictionary fragment definition
-// the header has the form:
-// extern declaration of dictionary fragment
-// redefinition of LAST_DICT and LAST_DICT_LEN macros
-FILE * cimpl = NULL;
-FILE * cdict = NULL;
-char cname[NAMELEN*3+1];
-size_t nrof_cdefs = 0;
-
-void word_cfile() {
-  // write #include impl to the start of the dict?
-  char* name = (char*)pop();
-  if (name) {
-    sprintf(cname, "%s.impl", name);
-    cimpl = fopen(cname, "w");
-    sprintf(cname, "%s.dict", name);
-    cdict = fopen(cname, "w");
-
-    strcpy(cname, mangle(name));
-
-    fprintf(cdict, "// Words from %s\n\n", name);
-    free(name);
-  } else {
-    // Finalize everything.
-
-    Word* cdef = DICTIONARY;
-    while (nrof_cdefs) {
-      nrof_cdefs--;
-      const char* mangled_name = mangle(cdef->name);
-      fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d },\n",
-        mangled_name, mangled_name, cdef->flags & ~IS_WORDLIST);
-      do { cdef = next_word(cdef); } while(!cdef->name);
-    }
-    fclose(cdict);
-    fclose(cimpl);
-  }
-}
-
-// Similar to defn, but assumes the top of the stack is a function full of string
-// literals. Write those out to the C files selected with c/file and save the
-// function itself as a no-op. The strings are freed.
-void word_cdefn() {
-  assert(cimpl);
-  char* body = (char*)pop();
-  const char* name = (char*)pop();
-  const char* mangled_name = mangle(name);
-
-  // Write the implementation
-  fprintf(cimpl, "\nconst PROGMEM char word_%s_name[] = \"%s\";\n",
-    mangled_name, name);
-  fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
-  free(body);
-
-  register_word(name, NULL)->flags |= IS_WORDLIST;
-  ++nrof_cdefs;
-}
-
+#else
+  void (*reset)(void) = NULL;
+  reset();
 #endif
-
-// the { that begins a function definition
-// switches the core into compile mode, if it's not already there, and pushes
-// a new, empty wordlist function onto the definition stack (can this be the same as the data stack?)
-void word_beginfn() {
-  defn_begin();
-}
-
-// the } that ends a function definition
-// switches the core out of compile mode, if this is the outermost function we're defining
-// allocates a Word for the function and pushes it onto the stack
-// The Word is added to the dictionary so it can be freed later, but has no name
-// To give it a name, use defn once it's on the stack.
-void word_endfn() {
-  push((Cell)defn_end());
 }
 
 const PROGMEM Word CORE_WORDS[] = {
   { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
+  { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 
   #define ENABLE_BUILTINS
   #include "builtins/all.h"
@@ -189,7 +94,6 @@ const PROGMEM Word CORE_WORDS[] = {
 #ifdef LINUX
   { (Word*)1, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH },
   { (Word*)1, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 #endif
 
   { NULL, word_list, "list", SELF_IN_FLASH },
