@@ -4,7 +4,7 @@
 
 #include "dictionary.h"
 #include "tty.h"
-#include "stacks.h"
+#include "execute.h"
 
 #define ENABLE_BUILTINS
 #include "builtins/all.c"

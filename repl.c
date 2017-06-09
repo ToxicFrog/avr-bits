@@ -8,7 +8,7 @@
 #include "repl.h"
 #include "dictionary.h"
 #include "tty.h"
-#include "stacks.h"
+#include "execute.h"
 
 jmp_buf catch;
 

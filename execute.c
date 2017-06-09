@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>  // memcpy
 
-#include "stacks.h"
+#include "execute.h"
 #include "dictionary.h"
 
 // Core library that does the actual execution of words and provides functions
@@ -39,7 +39,10 @@ void push(Cell val) {
 
 Word flashbuf;
 
+// Given a Word* pointer, execute it.
 void execute_word(Word* word) {
+  // Are we in compilation mode? If so just push the bytecode for this word onto
+  // the stack, unless it's marked IMMEDIATE.
   if (compiling && !(word->flags & IS_IMMEDIATE)) {
     if (word->flags & IS_WORDLIST) {
       STACK[STACKP++] = (Cell)OP_CALLWORD;
@@ -56,24 +59,29 @@ void execute_word(Word* word) {
     push((intptr_t)word->execute);
 
   } else if (word->flags & IS_WORDLIST) {
-    // Wordlists make word->execute a pointer to an array of WordImpls.
-    // Each one is either:
-    // OP_EOF: stop executing
-    // OP_PUSHLITERAL <val>: push val onto the data stack
-    // OP_CALLWORD <ptr>: treat ptr as a Word* and execute it
-    // or a pointer to a WordImpl that should be called directly.
-    WordImpl* opcodes = (WordImpl*)word->execute;
-    for (int IP = 0; opcodes[IP] != OP_EOF; ++IP) {
-      if (opcodes[IP] == OP_PUSHLITERAL) {
-        push((Cell)opcodes[++IP]);
-      } else if (opcodes[IP] == OP_CALLWORD) {
-        execute_word((Word*)opcodes[++IP]);
-      } else {
-        opcodes[IP]();
-      }
-    }
+    // If a wordlist, word->execute points to an array of WordImpls terminated
+    // with OP_EOF.
+    execute_wordlist((WordImpl*)word->execute);
   } else {
+    // Otherwise it's just a pointer to a C function of no args that does the thing.
     word->execute();
+  }
+}
+
+void execute_wordlist(const WordImpl* bytecode) {
+  // Each WordImpl is either:
+  // OP_EOF: stop executing
+  // OP_PUSHLITERAL <val>: push val onto the data stack
+  // OP_CALLWORD <ptr>: treat ptr as a Word* and execute it
+  // or a pointer to a C function to call.
+  for (int IP = 0; bytecode[IP] != OP_EOF; ++IP) {
+    if (bytecode[IP] == OP_PUSHLITERAL) {
+      push((Cell)bytecode[++IP]);
+    } else if (bytecode[IP] == OP_CALLWORD) {
+      execute_word((Word*)bytecode[++IP]);
+    } else {
+      bytecode[IP]();
+    }
   }
 }
 

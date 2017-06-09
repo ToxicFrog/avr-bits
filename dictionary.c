@@ -6,7 +6,7 @@
 
 #include "dictionary.h"
 #include "tty.h"
-#include "stacks.h"
+#include "execute.h"
 
 Word* DICTIONARY = NULL;
 

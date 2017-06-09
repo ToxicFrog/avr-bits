@@ -15,6 +15,7 @@ Cell peek();
 void push(Cell);
 
 void execute_word(Word*);
+void execute_wordlist(const WordImpl*);
 
 void defn_begin();
 Word* defn_end();
