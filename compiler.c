@@ -46,8 +46,52 @@ void word_endfn() {
   word->next = DICTIONARY;
   DICTIONARY = word;
 
+  compile_addressof(word);
+}
+
+// Functions for actually emitting bytecode. All bytecode goes on the stack.
+// TODO: also emit appropriate C code if we're in both c/file and compilation state.
+
+void compile_string(const char * str) {
+  push((Cell)OP_PUSHLITERAL);
+  push((Cell)str);
+}
+
+void compile_number(Cell num) {
+  push((Cell)OP_PUSHLITERAL);
+  push(num);
+}
+
+#include <stdio.h>
+
+void compile_word(Word* word) {
+  // printf("compile_word: %s (i:%d c:%d b:%d)\n", word->name,
+  //   word->flags & IS_IMMEDIATE,
+  //   word->flags & IS_CONSTANT,
+  //   word->flags & IS_BYTECODE);
+  if (word->flags & IS_IMMEDIATE) {
+    execute_word(word);
+  } else if (word->flags & IS_CONSTANT) {
+    push((Cell)OP_PUSHLITERAL);
+    push((Cell)word->execute);
+  } else if (word->flags & IS_BYTECODE) {
+    push((Cell)OP_CALLWORD);
+    push((Cell)word->execute);
+  } else {
+    push((Cell)word->execute);
+  }
+}
+
+void compile_addressof(Word* word) {
+  push((Cell)OP_PUSHLITERAL);
   push((Cell)word);
 }
+
+void compile_eof() {
+  push((Cell)OP_EOF);
+}
+
+
 
 #ifdef LINUX
 

@@ -1,5 +1,4 @@
-extern "C" char next_char() {
-  digitalWrite(LED_BUILTIN, HIGH);
+extern "C" char tty_next() {
   while (!Serial.available()) {
     delay(10);
   }
@@ -14,9 +13,14 @@ extern "C" char next_char() {
     Serial.write(ch);
   }
 
-  ///Serial.print("Got char: "); Serial.println(ch);
-  digitalWrite(LED_BUILTIN, LOW);
   return ch;
+}
+
+extern "C" char tty_peek() {
+  while (!Serial.available()) {
+    delay(10);
+  }
+  return Serial.peek();
 }
 
 extern "C" void print(const char * msg) {

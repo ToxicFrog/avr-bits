@@ -4,8 +4,9 @@
 #pragma once
 #include <stdlib.h>
 
-char next_char();
+char tty_peek();
+char tty_next();
+
 void print(const char *);
 #define println(str) { print(str); print("\r\n"); }
 void printint(const int);
-void readline(char *, size_t);

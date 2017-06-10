@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dictionary.h"
+#include "execute.h"
 
 #define OP_EOF ((WordImpl)0x0000)
 #define OP_PUSHLITERAL ((WordImpl)0x0001)
@@ -15,3 +16,9 @@ void word_endfn(void);
 void word_cfile(void);
 void word_cdefn(void);
 #endif
+
+void compile_string(const char * str);
+void compile_number(Cell num);
+void compile_word(Word* word);
+void compile_addressof(Word* word);
+void compile_eof();
