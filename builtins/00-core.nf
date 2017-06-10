@@ -46,7 +46,7 @@
 
 :const '
   WordImpl val = (WordImpl)pop();
-  register_word((const char*)pop(), val)->flags |= IS_CONSTANT | IS_IMMEDIATE;
+  register_word((const char*)pop(), val)->flags |= IS_CONSTANT;
 ' c/defn
 
 :immediate "((Word*)peek())->flags |= IS_IMMEDIATE;" c/defn
