@@ -13,7 +13,7 @@ void repl() {
     print("[");
     printint(STACKP);
     print("] ");
-    lex_input(tty_peek, tty_next);
+    lex_input();
     execute_bytecode((WordImpl*)pop());
   }
 }

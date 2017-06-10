@@ -18,7 +18,6 @@ char tty_next() {
   if (next == EOF) {
     return '\0';
   }
-  printf("%c", next);
   return next;
 }
 
