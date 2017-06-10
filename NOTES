@@ -9,44 +9,85 @@ String literals are "foo bar"; :foo is also permitted if the string contains no 
 Everything else is a word. Words are executed immediately when read; if prefixed with &, the address of the word is put on the stack instead.
 
 
+## new input code
+
+execute.c gets most of stacks.c and possibly some other things besides like execute_wordlist()
+compile.c gets the new lexing/parsing code
+basic operation is compile(string) which reads input and pushes opcodes onto the stack, then malloc()s room for them and moves them off the stack into the new buffer
+we shouldn't need to change the code for { and }, although we can probably factor some bits out into a common function
+So :double { 2 * } defn turns into:
+
+PUSHLITERAL "double"
+[create new word and add it to the compilation chain]
+PUSHLITERAL 2
+&*
+[pop last three cells, store in word, push word, link word into dict]
+&defn
+
+Since { and } are immediate, that leaves the stack as:
+PUSHLITERAL "double" <address of anonymous word> &defn
+reaching EOF, compile() then pops this into a wordlist -- either malloc'd or a static buffer, although in the latter case we can probably write to the buffer directly rather than using the stack -- and then the caller can execute_wordlist() it and then free it.
+
+
+// I guess if it's a word, we end up calling compile_word, which emits the
+// appropriate C code; either
+// word_mangled_name_impl() // C word
+// execute_word(word_mangled_name_impl) // notforth word
+// that still leaves consts but I guess we shouldn't be defining consts in flash
+// that may depend on the system! Like all the registers and stuff should be const
+// but should also only be available in AVR, and stuff that needs to be preallocated
+// should be created in __init__
+// although then we can't have a const pointer to a static buffer, can we? Hrm
+// I mean, I guess we can have c/const
+// which is similar to c/defn except it emits:
+// Cell word_mangled_name_const = (Cell)(<expr>);
+// so you can do something like
+// "char inbuf[80];" c/emit
+// :inbuf "inbuf" c/const
+// and the dict entry has IS_CONSTANT | IS_IMMEDIATE set?
+// although I guess in that case we don't even need the word_mangled_name_const, it
+// just turns into:
+// { (Word*)1, (WordImpl)(<expr>), word_mangled_name, IS_CONSTANT | IS_IMMEDIATE | ... },
+// and then it points to the right thing at compile time
+// how do we handle EOF?
+// when reading from a file this is just "when we're at the end of the file"
+// when reading keyboard input, I guess it's at EOL when the lexing state and compiler
+// state are both idle?
+
+When compile() runs out of input, or when it runs out of space to compile to, it returns. This presumably means it needs a way to communicate to the caller how far it got -- or it needs to use a stateful input source.
+
+Say, something like:
+WordList compile(char (*next)(void*), void* data)
+and it repeatedly calls next(data) to get the next character, with the expectation that it will return EOF on eof
+so for file input this is just fgetc and the FILE*
+for serial input it's a wrapper around ReadByte that returns EOF on \n
+for tty input it's a wrapper around getchar() that behaves similarly
+
 ## Compiling C functions
 
-:builtins.nf compile-to
-Writes definitions to builtins.nf.c, declarations to builtins.nf.h, and static initializers for the dictionary to builtins.nf.words.
+:foo.nf c/file
 
-0 compile-to
-Turns off compilation.
+Opens foo.nf.dict and foo.nf.impl
 
-Compiling C: :dup { "push(peek());" } cdef
-cdef pops the function, which should consist solely of string literals
-grabs all the strings, joins them with \n
-wraps them in a function definition and outputs them
-So the whole thing ends up being:
+:foo { "bar();" "baz();" } c/def
 
-    // builtins.nf.h
-    void word_dup();
+Defines foo as an error word and writes the real implementation to foo.nf.impl; recompile notforth to get it
 
-    // builtins.nf.words
-    { NULL, word_dup_impl, word_dup_name, NEXT_IN_FLASH | NAME_IN_FLASH | SELF_IN_FLASH },
+TODO: if the function is already defined, write the implementation but do not register the word in the dictionary.
 
-    // builtins.nf.c
-    const PROGMEM char word_dup_name[] = "dup";
-    void word_dup_impl() {
-      push(peek());
-    }
+0 c/file
 
-The compiled Word is duly entered into the dictionary, but the allocated strings that make up its body are freed and ->execute is relinked to `bye` (or, once we have it, `error`) -- this allows future function definitions in that session to find it, but makes it uncallable.
+Closes the .impl and .dict. Run `make` to incorporate the new words.
 
-Compiling notforth: `:double { 2 * } defn`
-defn does the usual thing, except if compiled for the host *and* compile-to is set, it also emits C code
-.nf.h and .nf.words look the same except the latter has IS_WORDLIST set, but here's the .nf.c:
 
-    void word_double() {
-      push(2);
-      word_X2A();
-    }
+Compiling notforth to C
 
-It assumes that all functions, C or notforth, it can call directly rather than going through find_word()
+As a wordlist it's going to be a bunch of:
+- PUSHLITERAL n => push(n)
+- CALLWORD word => word_<mangled_name>_impl();
+- <function pointer> => word_<mangled_name(fpointer_to_word(fp)->name)_impl();
+
+This works because, if the target word is a wordlist, we nonetheless know that it's available as a C function (because it's part of the bootstrapping process). If it's not a wordlist, we walk the dictionary to figure out which word the function corresponds to and derive the function name from that.
 
 Problem: how do we handle string literals? By the time push() sees them they're just a pointer, so we have to do something
 different in the parser here. Defer that problem for now, but it'll be an issue later.
