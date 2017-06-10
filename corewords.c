@@ -55,7 +55,7 @@ void word_list() {
   print("# word "); printname(word); println("");
   if (word->flags & IS_CONSTANT) {
     print("constant "); printint((intptr_t)word->execute); println("");
-  } else if (word->flags & IS_WORDLIST) {
+  } else if (word->flags & IS_BYTECODE) {
     WordImpl* op = (WordImpl*)word->execute;
     while (*op != NULL) {
       if (*op == (WordImpl)0x0001) {

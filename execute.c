@@ -48,8 +48,8 @@ void execute_word(Word* word) {
     // Constants store the value in word->execute, so just push that.
     push((intptr_t)word->execute);
 
-  } else if (word->flags & IS_WORDLIST) {
-    // If a wordlist, word->execute points to an array of WordImpls terminated
+  } else if (word->flags & IS_BYTECODE) {
+    // If bytecode, word->execute points to an array of WordImpls terminated
     // with OP_EOF.
     execute_wordlist((WordImpl*)word->execute);
   } else {

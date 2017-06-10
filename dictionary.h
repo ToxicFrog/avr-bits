@@ -31,7 +31,7 @@ typedef enum WordFlags {
   // `execute` is a constant to be pushed now rather than a function pointer
   IS_CONSTANT   = 1 << 3,
   // `execute` is a pointer to an opcode array to be executed by call_word rather than a function pointer
-  IS_WORDLIST   = 1 << 4,
+  IS_BYTECODE   = 1 << 4,
   // Evaluating this word in compile mode executes it instead of compiling it
   IS_IMMEDIATE  = 1 << 5,
 } WordFlags;

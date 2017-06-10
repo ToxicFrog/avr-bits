@@ -15,9 +15,9 @@ Word* compiling = NULL;
 void word_beginfn() {
   Word* word = malloc(sizeof(Word));
   word->next = compiling;
-  word->execute = NULL;
+  word->execute = (WordImpl)STACKP; // save stack pointer so we can figure out where the bytecode starts later
   word->name = NULL;
-  word->flags = 0;
+  word->flags = IS_BYTECODE;
   compiling = word;
 }
 
@@ -33,19 +33,14 @@ void word_endfn() {
   Word* word = compiling;
   compiling = word->next;
 
-  // Copy the wordlist off the stack.
-  // The top word->flags stack cells contain instructions.
-  // This relies on Cell and Word* having the same size, but since Cell is intptr_t that should be the case?
-  size_t len = (size_t)(word->flags);
-  Word* body = calloc(len + 1, sizeof(Word*));
-  memcpy(body, &STACK[STACKP-len], len * sizeof(Cell));
+  // Copy the wordlist off the stack and restore old STACKP.
+  // word->execute is the value of STACKP just before we started writing instructions.
+  compile_eof();
+  size_t len = STACKP - (size_t)word->execute;
+  STACKP = (size_t)word->execute;
+  Cell* body = calloc(len, sizeof(Cell));
+  memcpy(body, &STACK[STACKP], len * sizeof(Cell));
   word->execute = (WordImpl)body;
-
-  // Drop the wordlist from the stack.
-  STACKP -= len;
-
-  // Set flags.
-  word->flags = IS_WORDLIST;
 
   // Link the word into the dictionary.
   word->next = DICTIONARY;
@@ -57,8 +52,6 @@ void word_endfn() {
 #ifdef LINUX
 
 // Code for compiling C words goes here.
-
-#ifdef LINUX
 
 #include <stdio.h>
 #include <ctype.h>
@@ -115,7 +108,7 @@ void word_cfile() {
       nrof_cdefs--;
       const char* mangled_name = mangle(cdef->name);
       fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d },\n",
-        mangled_name, mangled_name, cdef->flags & ~IS_WORDLIST);
+        mangled_name, mangled_name, cdef->flags & ~IS_BYTECODE);
       do { cdef = next_word(cdef); } while(!cdef->name);
     }
     fclose(cdict);
@@ -138,12 +131,8 @@ void word_cdefn() {
   fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
   free(body);
 
-  register_word(name, NULL)->flags |= IS_WORDLIST;
+  register_word(name, NULL)->flags |= IS_BYTECODE;
   ++nrof_cdefs;
 }
 
-#endif
-
-
-
-#endif
+#endif  // LINUX
