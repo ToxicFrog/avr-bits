@@ -49,7 +49,7 @@
   register_word((const char*)pop(), val)->flags |= IS_CONSTANT;
 ' c/defn
 
-:immediate "((Word*)peek())->flags |= IS_IMMEDIATE;" c/defn
+:defmacro "word_defn_impl(); DICTIONARY->flags |= IS_IMMEDIATE;" c/defn
 
 
 0 c/file
