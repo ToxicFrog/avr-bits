@@ -11,6 +11,7 @@
   #define debugi(header, i)
 #endif
 
+// Maximum length of a word name.
 #define NAMELEN 32
 
 #if defined(LINUX) && defined(ARDUINO)
@@ -29,6 +30,11 @@
   #define INPUT_BUFSIZE 80
   #define STACKSIZE 32
   #include <avr/pgmspace.h>
+
+  // Whether to enable the serial REPL for the Arduino build.
+  // Turning this off disables the ability to run code by typing it into the
+  // serial port, but also saves about 350b of RAM.
+  #define SERIAL_REPL
 #else
   #error "You must #define either LINUX or ARDUINO"
 #endif

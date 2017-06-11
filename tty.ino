@@ -1,3 +1,7 @@
+#include "config.h"
+
+#ifdef SERIAL_REPL
+
 extern "C" char tty_next() {
   while (!Serial.available()) {
     delay(10);
@@ -30,3 +34,12 @@ extern "C" void print(const char * msg) {
 extern "C" void printint(const int n) {
   Serial.print(n);
 }
+
+#else
+
+extern "C" char tty_next() { return '\0'; }
+extern "C" char tty_peek() { return '\0'; }
+extern "C" void print(const char* msg) {}
+extern "C" void printint(const int n) {}
+
+#endif
