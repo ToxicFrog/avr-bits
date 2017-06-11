@@ -8,6 +8,26 @@ String literals are "foo bar"; :foo is also permitted if the string contains no 
 
 Everything else is a word. Words are executed immediately when read; if prefixed with &, the address of the word is put on the stack instead.
 
+## writing C definitions for nf words
+
+{, in addition to creating the Word, also begins a word_anon_<address> function
+Each instruction compiled is then appended
+} closes the function
+defn can then emit:
+  const PROGMEM char word_<mangled>_name = "...";
+  #define word_<mangled>_impl word_anon_<address>
+and
+  { (Word*)1, word_<mangled>_impl, word_<mangled>_name, flags },
+into the C.
+
+Problem: how do we handle nested functions?
+Assume we have a stack of function definitions.
+Then when we finish one, } calls compile_addressof, which in nfbc is:
+  OP_PUSHLITERAL,(Cell)word
+and in C should be:
+  push((Cell)word_anon_<address>);
+as long as we call this *after* we've finalized and popped the current function source code,
+we should be good.
 
 ## new input code
 
@@ -143,45 +163,3 @@ This means we need a way of mapping words to valid C identifiers. Thought: word_
 
 How do we build the dictionary chain in the generated C code?
 We don't! Make it an array instead. Store (~0) as the pointer in each one after the first. It goes in .data and gets written to EEPROM. Make sure the flag NEXT_IN_FLASH is properly set for each one. At initialization time we should probably tack on one last one with NEXT_IN_FLASH set to make sure everything works properly.
-
-// Top level loop:
-// - read a word
-//   - eat whitespace
-//   - read first char
-//   - if reader macro, invoke macro and let it handle the rest
-//   - else read rest of word into lexer
-// - if it's a literal, push it on the stack
-// - if it's a word, execute it
-
-// Executing a word:
-// - find Word* w in the dict
-// - w->execute(w)
-
-// Question: how do we handle function definitions? I was thinking something like:
-// > /inc { 1 + } def
-// a la ps
-// BUT
-// if /inc implicitly creates a new entry, how do we refer to it as a first-
-// class function?
-// Maybe:
-// > /inc makeword { 1 + } def
-// where:
-// makeword ( symbol -- word-pointer )
-// def ( word-pointer code -- )
-// But in that case, do we need a separate "symbol" type at all? Maybe we just
-// have a string type:
-// > "inc" makeword { 2 + } def
-// and then have a reader macro to refer to a function without calling it,
-// e.g.
-// > 3 `inc apply
-
-// How do we handle strings? One possibility is just to push them onto the stack
-// directly, e.g [bytes of string] [alignment padding] [length of string]
-// Of course, this means if you then call something that doesn't expect a string
-// Or, god forbid, something that manipulates the stack like dup or exch
-// CHAOS REIGNS
-// the ans forth approach is to store [pointer to string] [length of string]
-// and it's up to the interpreter to figure out where to store the string
-// the string is probably read-only
-// let's defer strings for now
-
