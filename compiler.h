@@ -15,6 +15,9 @@ void word_endfn(void);
 #ifdef LINUX
 void word_cfile(void);
 void word_cdefn(void);
+void c_register_word(Word*);
+#else
+#define c_register_word(x)
 #endif
 
 void compile_string(const char * str);

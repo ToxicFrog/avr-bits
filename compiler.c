@@ -11,6 +11,22 @@
 // It's up to the user to call defn to give it one, if they want.
 Word* compiling = NULL;
 
+#ifdef LINUX
+void c_beginfn(Word*);
+void c_endfn(Word*);
+void c_pushstring(const char*);
+void c_pushnumber(Cell);
+void c_pushword(Word*);
+void c_callword(Word*);
+#else
+#define c_beginfn(x)
+#define c_endfn(x)
+#define c_pushstring(x)
+#define c_pushnumber(x)
+#define c_pushword(x)
+#define c_callword(x)
+#endif
+
 // Create a new, blank Word definition and put it on the compilation stack.
 void word_beginfn() {
   Word* word = malloc(sizeof(Word));
@@ -19,6 +35,7 @@ void word_beginfn() {
   word->name = NULL;
   word->flags = IS_BYTECODE;
   compiling = word;
+  c_beginfn(word);
 }
 
 // Finalize a word definition: pop all bytecode on the data stack back to the
@@ -28,6 +45,8 @@ void word_beginfn() {
 // C function definition for it.
 void word_endfn() {
   if (!compiling) return; //die("} with no corresponding {");
+
+  c_endfn(compiling);
 
   // Pop it from the compilation stack.
   Word* word = compiling;
@@ -55,36 +74,38 @@ void word_endfn() {
 void compile_string(const char * str) {
   push((Cell)OP_PUSHLITERAL);
   push((Cell)str);
+  c_pushstring(str);
 }
 
 void compile_number(Cell num) {
   push((Cell)OP_PUSHLITERAL);
   push(num);
+  c_pushnumber(num);
 }
 
 #include <stdio.h>
 
 void compile_word(Word* word) {
-  // printf("compile_word: %s (i:%d c:%d b:%d)\n", word->name,
-  //   word->flags & IS_IMMEDIATE,
-  //   word->flags & IS_CONSTANT,
-  //   word->flags & IS_BYTECODE);
   if (word->flags & IS_IMMEDIATE) {
     execute_word(word);
   } else if (word->flags & IS_CONSTANT) {
     push((Cell)OP_PUSHLITERAL);
     push((Cell)word->execute);
+    c_pushnumber((Cell)word->execute);
   } else if (word->flags & IS_BYTECODE) {
     push((Cell)OP_CALLWORD);
     push((Cell)word->execute);
+    c_callword(word);
   } else {
     push((Cell)word->execute);
+    c_callword(word);
   }
 }
 
 void compile_addressof(Word* word) {
   push((Cell)OP_PUSHLITERAL);
   push((Cell)word);
+  c_pushword(word);
 }
 
 void compile_eof() {
@@ -155,8 +176,8 @@ void word_cfile() {
         mangled_name, mangled_name, cdef->flags & ~IS_BYTECODE);
       do { cdef = next_word(cdef); } while(!cdef->name);
     }
-    fclose(cdict);
-    fclose(cimpl);
+    fclose(cdict); cdict = NULL;
+    fclose(cimpl); cimpl = NULL;
   }
 }
 
@@ -178,5 +199,84 @@ void word_cdefn() {
   register_word(name, NULL)->flags |= IS_BYTECODE;
   ++nrof_cdefs;
 }
+
+// Functions for compiling words written in notforth into C.
+
+// FIXME:
+// beginfn to set up C source code buffer, etc
+// c_append to append to it if the files are open
+// endfn to pop C source code buffer and write it out
+// defn to set up C dict entry if files are open
+
+#define C_IMPL_BUFSIZE 4096
+#include <stdarg.h>
+
+void c_append(const char * fmt, ...) {
+  //printf("c_append: %s\n", fmt);
+  if (!compiling || !cimpl) return;
+  va_list ap;
+  va_start(ap, fmt);
+  vsprintf((char*)compiling->name + strlen(compiling->name), fmt, ap);
+  va_end(ap);
+  //printf("c_append: ok\n");
+}
+
+void c_beginfn(Word* word) {
+  if (!compiling || !cimpl) return;
+  compiling->name = (char*)malloc(C_IMPL_BUFSIZE);
+  c_append("\nvoid word_anon_%p() {\n", word);
+}
+
+void c_endfn(Word* word) {
+  if (!compiling || !cimpl) return;
+  c_append("}\n");
+  fprintf(cimpl, "%s", (char*)word->name);
+  free((char*)word->name);
+  word->name = NULL;
+}
+
+void c_register_word(Word* word) {
+  printf("c_register_word: %s\n", word->name);
+  if (!cimpl) return;
+  const char* mangled_name = mangle(word->name);
+  fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
+    mangled_name, word);
+  fprintf(cimpl, "const PROGMEM char word_%s_name[] = \"%s\";\n",
+    mangled_name, word->name);
+  // We force the IS_BYTECODE flag off here because once this definition gets
+  // loaded at compile time, it isn't bytecode -- but this is probably getting
+  // called from `defn`, which means the function *in memory* is implemented as
+  // bytecode and that flag will be set.
+  fprintf(cdict,
+    "  { (Word*)1, word_%s_impl, word_%s_name, "
+    "(SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d) & ~IS_BYTECODE },\n",
+    mangled_name, mangled_name, word->flags);
+  printf("c_register_word: ok\n");
+}
+
+void c_pushstring(const char* str) {
+  c_append("  push((Cell)\"%s\");\n", str);
+}
+
+void c_pushnumber(Cell n) {
+  c_append("  push(%d);\n", n);
+}
+
+void c_pushword(Word* word) {
+  if (word->name) {
+    c_append("  push((Cell)word_%s_impl);\n", mangle(word->name));
+  } else {
+    c_append("  push((Cell)word_anon_%p);\n", word);
+  }
+}
+
+void c_callword(Word* word) {
+  if (word->name) {
+    c_append("  word_%s_impl();\n", mangle(word->name));
+  } else {
+    c_append("  word_anon_%p();\n", word);
+  }
+}
+
 
 #endif  // LINUX

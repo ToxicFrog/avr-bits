@@ -42,15 +42,21 @@
 
 (words for defining words)
 
-:defn "Word* word = (Word*)pop(); word->name = (char*)pop();" c/defn
+:defn "
+  Word* word = (Word*)pop();
+  word->name = (char*)pop();
+  c_register_word(word);
+" c/defn
+
+:defmacro "
+  ((Word*)peek())->flags |= IS_IMMEDIATE;
+  word_defn_impl();
+" c/defn
 
 :const '
   WordImpl val = (WordImpl)pop();
   register_word((const char*)pop(), val)->flags |= IS_CONSTANT;
 ' c/defn
-
-:defmacro "word_defn_impl(); DICTIONARY->flags |= IS_IMMEDIATE;" c/defn
-
 
 0 c/file
 bye
