@@ -17,21 +17,26 @@ run: notforth
 clean:
 	> builtins/all.c
 	> builtins/all.h
-	rm -f notforth notforth-bootstrap builtins/*.nf.impl builtins/*.nf.dict
+	rm -f notforth nf-bootstrap builtins/*.nf.impl builtins/*.nf.dict
 
 notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
 	${CC} -DLINUX -o notforth ${SRCS}
 
+
+# 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
+
+# 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
+
 builtins/all.c: $(WORDS:%.nf=%.nf.impl)
-	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
-
 builtins/all.h: $(WORDS:%.nf=%.nf.dict)
-	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
+#builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
+builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf nf-bootstrap builtins.sh
+	./builtins.sh
 
-builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf notforth-bootstrap
-	(cd builtins && ../notforth-bootstrap ../$<)
-
-notforth-bootstrap: ${SRCS} ${HDRS}
-	${CC} -DLINUX -o notforth-bootstrap ${SRCS}
+# This secretly depends on builtins/all.{h,c}, in that it incorporates them
+# into the build, but it does not *require* them, and including that dependency
+# explictly would make the build graph cyclical.
+nf-bootstrap: ${SRCS} ${HDRS}
+	${CC} -DLINUX -o nf-bootstrap ${SRCS}
 
 .SUFFIXES:

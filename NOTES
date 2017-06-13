@@ -116,50 +116,27 @@ different in the parser here. Defer that problem for now, but it'll be an issue 
 
 We don't need to worry about this, since even wordlist functions, if compiled on the host, turn into C functions.
 
-## Compiling pointers to Words in flash
+## arduino build process:
 
-oh god
-ok, so, we're compiling a thing, read a word, call find_word(), append that address to the buffer
-EXCEPT
-what if it's in flash? find_word() copies that to a temporary buffer, then returns the address of the buffer
-so everything that's in flash ends up having the same address
-we can add a new flag, like SELF_IN_FLASH, but that doesn't help us get the real address
-there's also no way to reliably distinguish flash addresses from ram address
-so here's a really dumb idea
-assume that Words are always at least 2-aligned -- THIS TURNS OUT TO BE WRONG, THEY AREN'T, EVERYONE PANIC
-then use the LSB of the address as an "in flash" bit
-so, find_word returns the real address if in RAM, or (address | 0x01) if in flash
-call_word checks if (address & 0x01) and copies it into a temporary buffer if so
-buffer needs to be on the stack, otherwise we can't recurse
-so, calling a word turns into
-- check if low bit set; if so, clear it and copy from flash into ram
-- if IS_CONSTANT, push
-- if IS_WORDLIST, iterate execute, calling call_word() on each one
-- otherwise just call word->execute()
-
-Build process:
 - anything with a .ino extension gets catted together, then Arduino headers are prepended, arduino preprocessor runs, *then* it gets fed to gcc. So stuff with arduino-specific code should go in .ino files.
 - C files are compiled and then linked in to the final program. So stuff with multiplatform code should go in .c files.
 - stuff with linux specific code should go in .c files guarded by #ifdef HOST_NOTFORTH
 
+## optional safety checks
 
-So, problem -- we only have 2k RAM and 1k EEPROM. We can't write flash while running, only the bootloader can do that. So anything we enter at the serial console has to be compiled and saved in RAM, and that doesn't give us a lot of space.
+These are checks that will cause a longjmp back to the last error handler; unless/until we add user defined error handlers, this probably means the outermost frame of lex_input or execute_bytecode.
 
-Solution: store as much stuff as we can in EEPROM. This doesn't help with stuff entered at the terminal but anything precompiled can go in EEPROM except the dictionary chain itself.
+Checks in the lexer/compiler we can pretty much always leave on, since these will only be relevant when parsing source code or user input:
+- attempt to turn c/file on twice, or off twice
+- word not found
+- eof while reading string literal
+- eof waiting for }, or too many }
+- invalid number
+- string too long for stack
+- function too long for stack
+- function name too long for C name mangling
+- no memory available to allocate string, Word, or bytecode storage
 
-Problem: we can't store wordlists in EEPROM unless we're willing to eat a massive performance hit copying data out of flash every time we execute one. So EEPROM needs to contain actual C functions.
-
-So -- we need a compiler that can run on the host and generate C code that then gets compiled for the target by avr-gcc, keeping only the dictionary chain in memory -- and then we need to run the whole thing on the target.
-
-Also, we should be able to take wordlist definitions uploaded to the target at runtime and paste them into this compiler and get equivalent C out.
-
-So, say we define a word pair, C{ }, that lets us define a word implemented in C.
-
-If run on the target, it's an error. If run on the host, it emits C code to a file.
-
-Similarly, {} if run on the target compiles a wordlist to RAM. If run on the host it emits C code to call the functions making up that wordlist.
-
-This means we need a way of mapping words to valid C identifiers. Thought: word_<munged name>, where the name replaces non-alphanumerics with "X%02X" % char.
-
-How do we build the dictionary chain in the generated C code?
-We don't! Make it an array instead. Store (~0) as the pointer in each one after the first. It goes in .data and gets written to EEPROM. Make sure the flag NEXT_IN_FLASH is properly set for each one. At initialization time we should probably tack on one last one with NEXT_IN_FLASH set to make sure everything works properly.
+Checks in the runtime that we probably want to be able to turn off for production deployment, and which may be need to be able to fire even if there's no serial console attached:
+- stack underflow
+- stack overflow

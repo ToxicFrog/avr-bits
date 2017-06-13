@@ -2,7 +2,7 @@
 
 `notforth` is an itty bitty language for the AVR. It's Forth-inspired, especially under the hood, but also draws heavily on postscript.
 
-At the moment it depends on the Arduino libraries for serial access, but this is not a hard dependency; you can compile an arduino-less version if you're willing to give up the serial REPL
+At the moment it depends on the Arduino libraries for serial access, but this is not a hard dependency; you can compile an arduino-less version if you're willing to give up the serial REPL.
 
 ## Runtime features
 
@@ -27,7 +27,6 @@ Once this is done, builtins/all.h and builtins/all.c contain the compiled versio
 
 ## TODO
 
- * Improved bootstrap process that supports successive files
  * Document the actual language
  * Error handling
  * Basic register/IO library

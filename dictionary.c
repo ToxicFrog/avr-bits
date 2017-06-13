@@ -15,9 +15,8 @@ Word* next_word(Word* word) {
   static Word wordbuf;
   Word* next = word->next;
   if (word->flags & NEXT_IN_FLASH) {
-    // HERE IS WHERE THE SPIDERS HAPPEN
-    // if the old word was in wordbuf, we OVERWRITE IT HERE
-    // and then our attempts to use word->next below fail
+    // Note that if the old Word was also in wordbuf, we overwrite it here,
+    // invalidating anything in *word.
     memcpy_P(&wordbuf, next, sizeof(Word));
     if (wordbuf.next && wordbuf.flags & SELF_IN_FLASH) {
       wordbuf.next = next + (size_t)wordbuf.next;

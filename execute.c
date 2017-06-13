@@ -29,9 +29,11 @@ void push(Cell val) {
 void execute_word(Word* word) {
   if (word->flags & IS_CONSTANT) {
     // Constants store the value in word->execute, so just push that.
-    // This should never happen -- constants get resolved at compile time.
+    // Note that under normal circumstances, constants are resolved by the
+    // compiler; this will only ever happen if the word has both WORD_CONSTANT
+    // and WORD_IMMEDIATE set, and it will push the value of the constant,
+    // WITHOUT THE LEADING OP_PUSHLITERAL OPCODE, onto the stack.
     push((intptr_t)word->execute);
-    abort();
 
   } else if (word->flags & IS_BYTECODE) {
     // If bytecode, word->execute points to an array of WordImpls terminated
