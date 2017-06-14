@@ -1,4 +1,4 @@
 notforth
-notforth-bootstrap
+nf-bootstrap
 builtins/*.nf.impl
 builtins/*.nf.dict

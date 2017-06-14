@@ -1,3 +1,3 @@
 #pragma once
 
-void lex_input();
+int lex_input();

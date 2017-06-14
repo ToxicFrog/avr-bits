@@ -25,3 +25,4 @@ void compile_number(Cell num);
 void compile_word(Word* word);
 void compile_addressof(Word* word);
 void compile_eof();
+void compile_abort();

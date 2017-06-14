@@ -7,6 +7,7 @@
 #include "dictionary.h"
 #include "tty.h"
 #include "execute.h"
+#include "error.h"
 
 Word* DICTIONARY = NULL;
 
@@ -46,7 +47,9 @@ Word* find_word(const char* name) {
 }
 
 Word* register_word(const char* name, void (*exec)(void)) {
-  Word* word = malloc(sizeof(Word));
+  Word* word;
+  CHECK_MALLOC(word, sizeof(Word),
+    "Failed to allocate dictionary entry for builtin function.");
   word->next = DICTIONARY;
   word->execute = exec;
   word->name = name;

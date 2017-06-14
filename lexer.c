@@ -1,15 +1,14 @@
 #include "config.h"
 
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "lexer.h"
 #include "compiler.h"
 #include "execute.h"
-
-// FIXME use setjmp/longjmp here
-#include <stdlib.h>
 #include "tty.h"
-#define error(x) println(x); abort()
+#include "error.h"
 
 void lex_whitespace();
 void lex_token();
@@ -24,15 +23,24 @@ void lex_word();
 
 // Top level command to process input and turn it into bytecode.
 // Repeatedly eats whitespace, then reads and compiles a token.
-// If the whitespace includes \n or hits EOF and there are no unfinished functions on the compilation
-// stack, finalizes and pushes the bytecode for what it's pushed so far and returns.
+// If the whitespace includes \n or hits EOF and there are no unfinished functions
+// on the compilation stack, finalizes and pushes the bytecode for what it's
+// processed so far and returns true.
 // If there are and it hits \n it keeps reading.
-// If it hits EOF and the compilation stack is nonempty, it throws.
+// If it hits EOF and the compilation stack is nonempty, it returns false.
 // On success, leaves on top of the stack a pointer to a bytecode buffer suitable for
 // execution with execute_bytecode(). Caller takes ownership and should free it.
-void lex_input() {
+int lex_input() {
   size_t old_sp = STACKP;
-  // FIXME: set up error handling here
+  if (setjmp(catchpoint)) {
+    compile_abort();
+    STACKP = old_sp;
+    // consume remaining input or the user is gonna have a bad time
+    while (tty_peek() != '\n' && tty_peek() != '\0') tty_next();
+    if (tty_peek() == '\0')
+    if (tty_peek() == '\n') tty_next();
+    return false;
+  }
 
   while(true) {
     lex_whitespace();
@@ -43,10 +51,8 @@ void lex_input() {
     } else if (tty_peek() == '\0') {
       // End of input. Like \n but die if we can't finish.
       if (!compiling) break;
-      STACKP = old_sp;
-      push((Cell)NULL);
       error("EOF inside function definition.");
-      return;
+      return false;
     } else {
       lex_token();
     }
@@ -56,10 +62,13 @@ void lex_input() {
   // bytecode and push a pointer to it.
   compile_eof();
   size_t len = (STACKP - old_sp) * sizeof(WordImpl);
-  WordImpl* bytecode = malloc(len);
+  WordImpl* bytecode;
+  CHECK_MALLOC(bytecode, len,
+    "Failed to allocate bytecode buffer for user input.");
   memcpy(bytecode, &STACK[old_sp], len);
   STACKP = old_sp;
   push((Cell)bytecode);
+  return true;
 }
 
 // Consume input up to newline, EOF, or non-whitespace.
@@ -133,7 +142,9 @@ char* readuntil(int (*pred)(int)) {
 // string, copies the string into it, and returns a pointer to the buffer.
 char* readuntila(int (*pred)(int)) {
   char* buf = readuntil(pred);
-  char* str = malloc(strlen(buf) + 1);
+  char* str;
+  CHECK_MALLOC(str, strlen(buf) + 1,
+    "Failed to allocate memory for string literal.");
   strcpy(str, buf);
   return str;
 }
@@ -156,6 +167,7 @@ void lex_number() {
   char* buf = readuntil(isspace);
   Cell num = strtol(buf, &buf, 0);
   if (*buf) {
+    print("At input: "); println(buf);
     error("Invalid number.");
     return;
   }
@@ -167,7 +179,8 @@ void lex_addressof() {
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    print("undefined: "); error(name);
+    print("At input: &"); println(name);
+    error("Attempt to take address of undefined word.");
     return;
   }
   compile_addressof(word);
@@ -177,7 +190,8 @@ void lex_word() {
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    print("undefined: "); error(name);
+    print("At input: "); println(name);
+    error("Attempt to call undefined word");
     return;
   }
   compile_word(word);

@@ -27,10 +27,10 @@ notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
 
 # 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
 
-builtins/all.c: $(WORDS:%.nf=%.nf.impl)
-builtins/all.h: $(WORDS:%.nf=%.nf.dict)
-#builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
-builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf nf-bootstrap builtins.sh
+# builtins/all.c: $(WORDS:%.nf=%.nf.impl)
+# builtins/all.h: $(WORDS:%.nf=%.nf.dict)
+#builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf nf-bootstrap builtins.sh
+builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
 	./builtins.sh
 
 # This secretly depends on builtins/all.{h,c}, in that it incorporates them

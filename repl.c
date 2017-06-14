@@ -8,12 +8,14 @@
 
 extern Word* compiling;
 void repl() {
-  while (1) {
+  while(1) {
     if (compiling) print("compile ");
     print("[");
     printint(STACKP);
     print("] ");
-    lex_input();
-    execute_bytecode((WordImpl*)pop());
-  }
+    if (!lex_input()) continue;
+    WordImpl* code = (WordImpl*)pop();
+    execute_bytecode(code);
+    free(code);
+  };
 }

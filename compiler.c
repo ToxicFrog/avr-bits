@@ -1,15 +1,18 @@
 #include "config.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "compiler.h"
 #include "dictionary.h"
 #include "execute.h"
+#include "error.h"
 
 // Stack of Word definitions that we're compiling. When we finish a word, it
 // gets popped from this stack and added to DICTIONARY, albeit without a name.
 // It's up to the user to call defn to give it one, if they want.
 Word* compiling = NULL;
+
 
 #ifdef LINUX
 void c_beginfn(Word*);
@@ -29,7 +32,9 @@ void c_callword(Word*);
 
 // Create a new, blank Word definition and put it on the compilation stack.
 void word_beginfn() {
-  Word* word = malloc(sizeof(Word));
+  Word* word;
+  CHECK_MALLOC(word, sizeof(Word),
+    "Failed to allocate dictionary entry for anonymous function");
   word->next = compiling;
   word->execute = (WordImpl)STACKP; // save stack pointer so we can figure out where the bytecode starts later
   word->name = NULL;
@@ -57,7 +62,9 @@ void word_endfn() {
   compile_eof();
   size_t len = STACKP - (size_t)word->execute;
   STACKP = (size_t)word->execute;
-  Cell* body = calloc(len, sizeof(Cell));
+  Cell* body;
+  CHECK_MALLOC(body, len * sizeof(Cell),
+    "Failed to allocate bytecode buffer for anonymous function");
   memcpy(body, &STACK[STACKP], len * sizeof(Cell));
   word->execute = (WordImpl)body;
 
@@ -112,7 +119,16 @@ void compile_eof() {
   push((Cell)OP_EOF);
 }
 
-
+// Called when something has gone wrong; the caller wants us to unwind the
+// compilation stack and clean up after ourselves.
+void compile_abort() {
+  while (compiling) {
+    Word* tmp = compiling;
+    compiling = tmp->next;
+    if (tmp->name) free((char*)tmp->name);
+    free(tmp);
+  }
+}
 
 #ifdef LINUX
 
@@ -223,7 +239,8 @@ void c_append(const char * fmt, ...) {
 
 void c_beginfn(Word* word) {
   if (!compiling || !cimpl) return;
-  compiling->name = (char*)malloc(C_IMPL_BUFSIZE);
+  CHECK_MALLOC(compiling->name, C_IMPL_BUFSIZE,
+    "Failed to allocate buffer for C source code.");
   c_append("\nvoid word_anon_%p() {\n", word);
 }
 
@@ -236,7 +253,6 @@ void c_endfn(Word* word) {
 }
 
 void c_register_word(Word* word) {
-  printf("c_register_word: %s\n", word->name);
   if (!cimpl) return;
   const char* mangled_name = mangle(word->name);
   fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
@@ -251,7 +267,6 @@ void c_register_word(Word* word) {
     "  { (Word*)1, word_%s_impl, word_%s_name, "
     "(SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d) & ~IS_BYTECODE },\n",
     mangled_name, mangled_name, word->flags);
-  printf("c_register_word: ok\n");
 }
 
 void c_pushstring(const char* str) {

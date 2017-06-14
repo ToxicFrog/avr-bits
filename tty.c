@@ -4,20 +4,18 @@
 
 #include <stdio.h>
 
+#include "error.h"
+
 char tty_peek() {
+  if (feof(stdin)) return '\0';
   int next = getc(stdin);
-  if (next == EOF) {
-    return '\0';
-  }
   ungetc(next, stdin);
   return next;
 }
 
 char tty_next() {
   int next = getc(stdin);
-  if (next == EOF) {
-    return '\0';
-  }
+  CHECK(next != EOF, "Attempt to read past end of input.");
   return next;
 }
 

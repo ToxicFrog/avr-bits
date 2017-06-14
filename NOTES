@@ -128,15 +128,95 @@ These are checks that will cause a longjmp back to the last error handler; unles
 
 Checks in the lexer/compiler we can pretty much always leave on, since these will only be relevant when parsing source code or user input:
 - attempt to turn c/file on twice, or off twice
-- word not found
+ - word not found
 - eof while reading string literal
-- eof waiting for }, or too many }
-- invalid number
+ - eof waiting for }, or too many }
+ - invalid number
 - string too long for stack
 - function too long for stack
 - function name too long for C name mangling
-- no memory available to allocate string, Word, or bytecode storage
+ - no memory available to allocate string, Word, or bytecode storage
 
 Checks in the runtime that we probably want to be able to turn off for production deployment, and which may be need to be able to fire even if there's no serial console attached:
 - stack underflow
 - stack overflow
+
+## building using avr-gcc
+
+This seems to get as far as linking and then die because there's no main():
+avr-gcc -flto -mmcu=atmega328p -DARDUINO -Wl,--gc-sections -o notforth.hex *.c
+Here's some bits from the arduino IDE:
+
+"/share/arduino/hardware/tools/avr/bin/avr-g++" -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics  -flto -w -x c++ -E -CC -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/notforth.ino.cpp" -o "/dev/null"
+
+Generating function prototypes...
+"/share/arduino/hardware/tools/avr/bin/avr-g++" -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics  -flto -w -x c++ -E -CC -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/notforth.ino.cpp" -o "/tmp/arduino_build_873616/preproc/ctags_target_for_gcc_minus_e.cpp"
+"/share/arduino/tools-builder/ctags/5.8-arduino10/ctags" -u --language-force=c++ -f - --c++-kinds=svpf --fields=KSTtzns --line-directives "/tmp/arduino_build_873616/preproc/ctags_target_for_gcc_minus_e.cpp"
+Compiling sketch...
+"/share/arduino/hardware/tools/avr/bin/avr-g++" -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/notforth.ino.cpp" -o "/tmp/arduino_build_873616/sketch/notforth.ino.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc" -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/compiler.c" -o "/tmp/arduino_build_873616/sketch/compiler.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc" -c -g -Os -w -std=gnu11 -ffunction-sections -fdata-sections -MMD -flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/lexer.c" -o "/tmp/arduino_build_873616/sketch/lexer.c.o"
+Using previously compiled file: /tmp/arduino_build_873616/sketch/notforth.c.o
+Using previously compiled file: /tmp/arduino_build_873616/sketch/repl.c.o
+Using previously compiled file: /tmp/arduino_build_873616/sketch/tty.c.o
+"/share/arduino/hardware/tools/avr/bin/avr-g++" -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/tmp/arduino_build_873616/sketch/notforth.ino.cpp" -o "/tmp/arduino_build_873616/sketch/notforth.ino.cpp.o"
+Compiling libraries...
+Compiling core...
+"/share/arduino/hardware/tools/avr/bin/avr-gcc" -c -g -x assembler-with-cpp -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/share/arduino/hardware/arduino/avr/cores/arduino/wiring_pulse.S" -o "/tmp/arduino_build_873616/core/wiring_pulse.S.o"
+
+Compiling libraries...
+Compiling core...
+"/share/arduino/hardware/tools/avr/bin/avr-gcc" -c -g -x assembler-with-cpp -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10612 -DARDUINO_AVR_DUEMILANOVE -DARDUINO_ARCH_AVR   "-I/share/arduino/hardware/arduino/avr/cores/arduino" "-I/share/arduino/hardware/arduino/avr/variants/standard" "/share/arduino/hardware/arduino/avr/cores/arduino/wiring_pulse.S" -o "/tmp/arduino_build_873616/core/wiring_pulse.S.o"
+Using previously compiled file: /tmp/arduino_build_873616/core/WInterrupts.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/hooks.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/wiring.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/wiring_analog.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/wiring_digital.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/wiring_pulse.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/wiring_shift.c.o
+Using previously compiled file: /tmp/arduino_build_873616/core/CDC.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/HardwareSerial.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/HardwareSerial0.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/HardwareSerial1.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/HardwareSerial2.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/HardwareSerial3.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/IPAddress.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/PluggableUSB.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/Print.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/Stream.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/Tone.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/USBCore.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/WMath.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/WString.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/abi.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/main.cpp.o
+Using previously compiled file: /tmp/arduino_build_873616/core/new.cpp.o
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring_pulse.S.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/WInterrupts.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/hooks.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring_analog.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring_digital.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring_pulse.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/wiring_shift.c.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/CDC.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/HardwareSerial.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/HardwareSerial0.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/HardwareSerial1.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/HardwareSerial2.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/HardwareSerial3.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/IPAddress.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/PluggableUSB.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/Print.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/Stream.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/Tone.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/USBCore.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/WMath.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/WString.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/abi.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/main.cpp.o"
+"/share/arduino/hardware/tools/avr/bin/avr-gcc-ar" rcs  "/tmp/arduino_build_873616/core/core.a" "/tmp/arduino_build_873616/core/new.cpp.o"
+Linking everything together...
+"/share/arduino/hardware/tools/avr/bin/avr-gcc" -w -Os -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p  -o "/tmp/arduino_build_873616/notforth.ino.elf" "/tmp/arduino_build_873616/sketch/compiler.c.o" "/tmp/arduino_build_873616/sketch/corewords.c.o" "/tmp/arduino_build_873616/sketch/dictionary.c.o" "/tmp/arduino_build_873616/sketch/execute.c.o" "/tmp/arduino_build_873616/sketch/lexer.c.o" "/tmp/arduino_build_873616/sketch/notforth.c.o" "/tmp/arduino_build_873616/sketch/repl.c.o" "/tmp/arduino_build_873616/sketch/tty.c.o" "/tmp/arduino_build_873616/sketch/notforth.ino.cpp.o" "/tmp/arduino_build_873616/core/core.a" "-L/tmp/arduino_build_873616" -lm
+"/share/arduino/hardware/tools/avr/bin/avr-objcopy" -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0  "/tmp/arduino_build_873616/notforth.ino.elf" "/tmp/arduino_build_873616/notforth.ino.eep"
+"/share/arduino/hardware/tools/avr/bin/avr-objcopy" -O ihex -R .eeprom  "/tmp/arduino_build_873616/notforth.ino.elf" "/tmp/arduino_build_873616/notforth.ino.hex"
