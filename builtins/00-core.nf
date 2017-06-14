@@ -16,6 +16,14 @@
   println("----");
 ' c/defn
 
+:bye '
+#ifdef LINUX
+  exit(0);
+#else
+  void (*reset)(void) = NULL;
+  reset();
+#endif
+' c/defn
 
 (memory and stack functions)
 
@@ -25,8 +33,29 @@
 ( addr val ! -- )
 :! "Cell val = pop(); *(Cell*)pop() = val;" c/defn
 
+( x dup -- x x )
 :dup "push(peek());" c/defn
 
+( x y exch -- y x )
+:exch "Cell x = pop(); Cell y = pop(); push(x); push(y);" c/defn
+
+( ifcode cond if -- )
+:if '
+  Cell cond = pop();
+  Word* ifword = (Word*)pop();
+  if (cond) execute_word(ifword);
+' c/defn
+
+( ifcode elsecode cond ifelse -- )
+:ifelse '
+  Cell cond = pop();
+  Word* elseword = (Word*)pop();
+  Word* ifword = (Word*)pop();
+  if (cond) {
+    execute_word(ifword);
+  } else {
+    execute_word(elseword);
+  }
+' c/defn
 
 0 c/file
-bye

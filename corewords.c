@@ -73,19 +73,9 @@ void word_list() {
   println("# end");
 }
 
-void word_bye() {
-#ifdef LINUX
-  exit(0);
-#else
-  void (*reset)(void) = NULL;
-  reset();
-#endif
-}
-
 const PROGMEM Word CORE_WORDS[] = {
   { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-  { (Word*)1, word_bye, "bye", NEXT_IN_FLASH | SELF_IN_FLASH },
 
   #define ENABLE_BUILTINS
   #include "builtins/all.h"

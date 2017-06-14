@@ -15,6 +15,8 @@
 # - once this process is over, we have an nf-bootstrap incorporating all of the
 #   .nf files, and builtins/all.{h,c} containing the most recent version
 
+set -e
+
 for nf in builtins/*.nf; do
   if [[ $nf -ot $nf.impl ]]; then
     echo "Up to date: $nf"
