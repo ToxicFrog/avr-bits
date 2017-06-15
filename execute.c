@@ -6,6 +6,7 @@
 #include "execute.h"
 #include "dictionary.h"
 #include "compiler.h"
+#include "error.h"
 
 // Core library that does the actual execution of words and provides functions
 // for interacting with the stacks.
@@ -14,14 +15,17 @@ Cell STACK[STACKSIZE];
 size_t STACKP = 0; // points to the empty slot just above the last stack slot
 
 Cell peek() {
+  CHECK(STACKP > 0, "stack underflow peeking");
   return STACK[STACKP-1];
 }
 
 Cell pop() {
+  CHECK(STACKP > 0, "stack underflow popping");
   return STACK[--STACKP];
 }
 
 void push(Cell val) {
+  CHECK(STACKP < STACKSIZE, "stack overflow pushing");
   STACK[STACKP++] = val;
 }
 

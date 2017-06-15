@@ -28,7 +28,6 @@ Once this is done, builtins/all.h and builtins/all.c contain the compiled versio
 ## TODO
 
  * Document the actual language
- * Error handling
  * Basic register/IO library
  * Example program on the arduino
  * Rewrite REPL in notforth; ability to compile in a `main` function

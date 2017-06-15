@@ -16,11 +16,13 @@
 #include "corewords.h"
 #include "lexer.h"
 #include "execute.h"
+#include "error.h"
 
 void run_file(const char* file) {
   stdin = fopen(file, "r");
   while (!feof(stdin)) {
-    lex_input();
+    if (!lex_input()) break;
+    if (setjmp(catchpoint)) break;
     execute_bytecode((WordImpl*)pop());
   }
   fclose(stdin);

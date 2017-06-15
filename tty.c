@@ -6,8 +6,12 @@
 
 #include "error.h"
 
+int tty_eof() {
+  return feof(stdin);
+}
+
 char tty_peek() {
-  if (feof(stdin)) return '\0';
+  if (tty_eof()) return '\0';
   int next = getc(stdin);
   ungetc(next, stdin);
   return next;

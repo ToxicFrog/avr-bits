@@ -24,7 +24,6 @@
 #elif defined(LINUX)
   #include <string.h>
 
-  #define INPUT_BUFSIZE 1024
   #define STACKSIZE 1024
   #define PROGMEM
   #define pgm_read_byte(x) *(x)
@@ -32,7 +31,6 @@
   #define strcmp_P(s1, s2) strcmp(s1, s2)
   #define memcpy_P(dst, src, len) memcpy(dst, src, len)
 #elif defined(ARDUINO)
-  #define INPUT_BUFSIZE 80
   #define STACKSIZE 32
   #include <avr/pgmspace.h>
 
@@ -43,3 +41,5 @@
 #else
   #error "You must #define either LINUX or ARDUINO"
 #endif
+
+#define STACKBYTES (STACKSIZE * sizeof(Cell))

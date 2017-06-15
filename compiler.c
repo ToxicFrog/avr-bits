@@ -49,7 +49,7 @@ void word_beginfn() {
 // TODO: if running on the host and in c/file mode, also emit an appropriate
 // C function definition for it.
 void word_endfn() {
-  if (!compiling) return; //die("} with no corresponding {");
+  CHECK(!compiling, "} with no matching {");
 
   c_endfn(compiling);
 
@@ -136,11 +136,13 @@ void compile_abort() {
 
 #include <stdio.h>
 #include <ctype.h>
-#include <assert.h>
 #include <string.h>
 
 const char * mangle(const char * name) {
-  static char mangled_name[NAMELEN*3+1];
+  // The maximum possible length of a name -- assuming no shenanigans are happening
+  // in C -- is the number of characters you can fit on the stack, x3 if they all
+  // have to be X-escaped due to not being alphanumeric.
+  static char mangled_name[STACKBYTES * 3];
   // Determine the mangled name
   char* mch = mangled_name;
   for (const char* ch = name; *ch; ++ch) {
@@ -165,13 +167,13 @@ const char * mangle(const char * name) {
 // redefinition of LAST_DICT and LAST_DICT_LEN macros
 FILE * cimpl = NULL;
 FILE * cdict = NULL;
-char cname[NAMELEN*3+1];
+char cname[STACKBYTES];
 size_t nrof_cdefs = 0;
 
 void word_cfile() {
-  // write #include impl to the start of the dict?
   char* name = (char*)pop();
   if (name) {
+    CHECK(!cimpl, "Attempt to open a new file with c/file without closing the current one.");
     sprintf(cname, "%s.impl", name);
     cimpl = fopen(cname, "w");
     sprintf(cname, "%s.dict", name);
@@ -182,6 +184,7 @@ void word_cfile() {
     fprintf(cdict, "// Words from %s\n\n", name);
     free(name);
   } else {
+    CHECK(cimpl, "Attempt to close c/file when there isn't one open.");
     // Finalize everything.
 
     Word* cdef = DICTIONARY;
@@ -201,7 +204,7 @@ void word_cfile() {
 // literals. Write those out to the C files selected with c/file and save the
 // function itself as a no-op. The strings are freed.
 void word_cdefn() {
-  assert(cimpl);
+  CHECK(cimpl, "Attempt to call c/impl before c/file.");
   char* body = (char*)pop();
   const char* name = (char*)pop();
   const char* mangled_name = mangle(name);
@@ -218,12 +221,7 @@ void word_cdefn() {
 
 // Functions for compiling words written in notforth into C.
 
-// FIXME:
-// beginfn to set up C source code buffer, etc
-// c_append to append to it if the files are open
-// endfn to pop C source code buffer and write it out
-// defn to set up C dict entry if files are open
-
+// How much space we allocate for a function definition.
 #define C_IMPL_BUFSIZE 4096
 #include <stdarg.h>
 

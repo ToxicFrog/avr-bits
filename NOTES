@@ -48,32 +48,6 @@ Since { and } are immediate, that leaves the stack as:
 PUSHLITERAL "double" <address of anonymous word> &defn
 reaching EOF, compile() then pops this into a wordlist -- either malloc'd or a static buffer, although in the latter case we can probably write to the buffer directly rather than using the stack -- and then the caller can execute_wordlist() it and then free it.
 
-
-// I guess if it's a word, we end up calling compile_word, which emits the
-// appropriate C code; either
-// word_mangled_name_impl() // C word
-// execute_word(word_mangled_name_impl) // notforth word
-// that still leaves consts but I guess we shouldn't be defining consts in flash
-// that may depend on the system! Like all the registers and stuff should be const
-// but should also only be available in AVR, and stuff that needs to be preallocated
-// should be created in __init__
-// although then we can't have a const pointer to a static buffer, can we? Hrm
-// I mean, I guess we can have c/const
-// which is similar to c/defn except it emits:
-// Cell word_mangled_name_const = (Cell)(<expr>);
-// so you can do something like
-// "char inbuf[80];" c/emit
-// :inbuf "inbuf" c/const
-// and the dict entry has IS_CONSTANT | IS_IMMEDIATE set?
-// although I guess in that case we don't even need the word_mangled_name_const, it
-// just turns into:
-// { (Word*)1, (WordImpl)(<expr>), word_mangled_name, IS_CONSTANT | IS_IMMEDIATE | ... },
-// and then it points to the right thing at compile time
-// how do we handle EOF?
-// when reading from a file this is just "when we're at the end of the file"
-// when reading keyboard input, I guess it's at EOL when the lexing state and compiler
-// state are both idle?
-
 When compile() runs out of input, or when it runs out of space to compile to, it returns. This presumably means it needs a way to communicate to the caller how far it got -- or it needs to use a stateful input source.
 
 Say, something like:
@@ -109,9 +83,6 @@ As a wordlist it's going to be a bunch of:
 
 This works because, if the target word is a wordlist, we nonetheless know that it's available as a C function (because it's part of the bootstrapping process). If it's not a wordlist, we walk the dictionary to figure out which word the function corresponds to and derive the function name from that.
 
-Problem: how do we handle string literals? By the time push() sees them they're just a pointer, so we have to do something
-different in the parser here. Defer that problem for now, but it'll be an issue later.
-
 ## Calling wordlists in flash
 
 We don't need to worry about this, since even wordlist functions, if compiled on the host, turn into C functions.
@@ -121,25 +92,6 @@ We don't need to worry about this, since even wordlist functions, if compiled on
 - anything with a .ino extension gets catted together, then Arduino headers are prepended, arduino preprocessor runs, *then* it gets fed to gcc. So stuff with arduino-specific code should go in .ino files.
 - C files are compiled and then linked in to the final program. So stuff with multiplatform code should go in .c files.
 - stuff with linux specific code should go in .c files guarded by #ifdef HOST_NOTFORTH
-
-## optional safety checks
-
-These are checks that will cause a longjmp back to the last error handler; unless/until we add user defined error handlers, this probably means the outermost frame of lex_input or execute_bytecode.
-
-Checks in the lexer/compiler we can pretty much always leave on, since these will only be relevant when parsing source code or user input:
-- attempt to turn c/file on twice, or off twice
- - word not found
-- eof while reading string literal
- - eof waiting for }, or too many }
- - invalid number
-- string too long for stack
-- function too long for stack
-- function name too long for C name mangling
- - no memory available to allocate string, Word, or bytecode storage
-
-Checks in the runtime that we probably want to be able to turn off for production deployment, and which may be need to be able to fire even if there's no serial console attached:
-- stack underflow
-- stack overflow
 
 ## building using avr-gcc
 

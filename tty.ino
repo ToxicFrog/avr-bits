@@ -2,6 +2,8 @@
 
 #ifdef SERIAL_REPL
 
+extern "C" int tty_eof() { return false; }
+
 extern "C" char tty_next() {
   while (!Serial.available()) {
     delay(10);

@@ -5,17 +5,20 @@
 #include "tty.h"
 #include "execute.h"
 #include "lexer.h"
+#include "error.h"
 
 extern Word* compiling;
 void repl() {
-  while(1) {
+  while(!tty_eof()) {
     if (compiling) print("compile ");
     print("[");
     printint(STACKP);
     print("] ");
     if (!lex_input()) continue;
     WordImpl* code = (WordImpl*)pop();
-    execute_bytecode(code);
+    if (!setjmp(catchpoint)) {
+        execute_bytecode(code);
+    }
     free(code);
   };
 }

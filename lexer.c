@@ -37,7 +37,6 @@ int lex_input() {
     STACKP = old_sp;
     // consume remaining input or the user is gonna have a bad time
     while (tty_peek() != '\n' && tty_peek() != '\0') tty_next();
-    if (tty_peek() == '\0')
     if (tty_peek() == '\n') tty_next();
     return false;
   }
@@ -133,6 +132,7 @@ char* readuntil(int (*pred)(int)) {
   size_t len = 0;
   while (!pred(tty_peek())) {
     buf[len++] = tty_next();
+    CHECK(STACKP + (len/sizeof(Cell)) < STACKSIZE, "Stack overflow reading string, number, or name.");
   }
   buf[len] = '\0';
   return buf;

@@ -6,6 +6,7 @@
 
 char tty_peek();
 char tty_next();
+int tty_eof();
 
 void print(const char *);
 #define println(str) { print(str); print("\r\n"); }
