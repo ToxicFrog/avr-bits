@@ -10,5 +10,10 @@ extern jmp_buf catchpoint;
   longjmp(catchpoint, 1); \
 }
 
-#define CHECK(condition, msg) if (!(condition)) error(msg);
-#define CHECK_MALLOC(var, size, msg) var = malloc(size); CHECK(var != NULL, msg)
+#ifdef SAFETY_CHECKS
+  #define CHECK(condition, msg) if (!(condition)) error(msg);
+  #define CHECK_MALLOC(var, size, msg) var = malloc(size); CHECK(var != NULL, msg)
+#else
+  #define CHECK(condition, msg)
+  #define CHECK_MALLOC(var, size, msg) var = malloc(size)
+#endif

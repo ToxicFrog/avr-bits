@@ -11,8 +11,13 @@
   #define debugi(header, i)
 #endif
 
-// Maximum length of a word name.
+// Maximum length of a word name. Used for some intermediate buffers.
+// TODO: since the words are stored on the stack, we can use STACKSIZE for this.
 #define NAMELEN 32
+
+// Enable runtime safety checks for things like stack over/underflow and malloc
+// failures. Small code size/runtime performance impact.
+#define SAFETY_CHECKS
 
 #if defined(LINUX) && defined(ARDUINO)
   #error "Can't #define both LINUX and ARDUINO at the same time"
