@@ -11,12 +11,6 @@ At the moment it depends on the Arduino libraries for serial access, but this is
  * Functions can be compiled on the host to be stored in flash on the AVR
  * Small! <200b RAM, <2k flash if you omit the REPL
 
-## Language features
-
- * Decimal and hex literals
- * Dynamically allocated string literals
- * Anonymous functions
-
 ## Building
 
 Notforth can be built for both Linux and Arduino (non-Arduino AVR compatibility is in the works). Most of the notforth standard library is itself written in notforth, so before the Arduino version can be built, the Linux version needs to be used to bootstrap it.
