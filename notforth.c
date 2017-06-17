@@ -23,7 +23,9 @@ void run_file(const char* file) {
   while (!feof(stdin)) {
     if (!lex_input()) break;
     if (setjmp(catchpoint)) break;
-    execute_bytecode((WordImpl*)pop());
+    WordImpl* bytecode = (WordImpl*)pop();
+    execute_bytecode(bytecode);
+    free(bytecode);
   }
   fclose(stdin);
 }
@@ -39,9 +41,6 @@ int main(int argc, char ** argv) {
     return 0;
   }
 
-  printf("argc: %d\n", argc);
-  printf("Pointer size: %lu\n", sizeof(void*));
-  printf("Word size: %lu\n", sizeof(Word));
   repl();
   return 0;
 }
