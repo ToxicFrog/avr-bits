@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 
 #include <stdlib.h>   // NULL, malloc
 #include <stdint.h>

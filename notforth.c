@@ -1,6 +1,6 @@
 // Notforth main file for HOST. See notforth.ino for TARGET.
 
-#include "config.h"
+#include "common.h"
 
 #ifdef LINUX
 

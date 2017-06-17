@@ -1,6 +1,6 @@
 // Core words for notforth.
 
-#include "config.h"
+#include "common.h"
 
 #include "dictionary.h"
 #include "tty.h"

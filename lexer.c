@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 
 #include <ctype.h>
 #include <string.h>

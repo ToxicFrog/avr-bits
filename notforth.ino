@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 
 extern "C" {
 #include "dictionary.h"
