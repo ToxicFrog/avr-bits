@@ -90,7 +90,7 @@ void lex_token() {
     // Block comment.
     case '(': return lex_blockcomment();
     // Addressof.
-    case '&': return lex_addressof();
+    case '@': return lex_addressof();
     // String, possibly multiline.
     case '"':
     case '\'':
@@ -175,11 +175,11 @@ void lex_number() {
 }
 
 void lex_addressof() {
-  tty_next(); // Drop leading &
+  tty_next(); // Drop leading @
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    print("At input: &"); println(name);
+    print("At input: @"); println(name);
     error("Attempt to take address of undefined word.");
     return;
   }

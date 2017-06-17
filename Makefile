@@ -31,7 +31,7 @@ notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
 # builtins/all.h: $(WORDS:%.nf=%.nf.dict)
 #builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf nf-bootstrap builtins.sh
 builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
-	./builtins.sh
+	bash builtins.sh
 
 # This secretly depends on builtins/all.{h,c}, in that it incorporates them
 # into the build, but it does not *require* them, and including that dependency

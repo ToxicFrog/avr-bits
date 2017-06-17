@@ -10,9 +10,9 @@
 
 (bitwise operators)
 
-# oops -- can't use & for this yet, since & is used for addressof
-:bit-and "push(pop() & pop());" c/defn
+:& "push(pop() & pop());" c/defn
 :| "push(pop() | pop());" c/defn
+:^ "push(pop() ^ pop());" c/defn
 
 ( x amount << -- x' )
 :<< "Cell n = pop(); push(pop() << n);" c/defn

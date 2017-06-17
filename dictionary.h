@@ -20,9 +20,9 @@ typedef struct Word {
 } Word;
 
 typedef enum WordFlags {
-  // `next` pointer is to .progmem rather than to RAM
+  // `next` pointer is to .progmem rather than to RAM.
   NEXT_IN_FLASH = 1 << 0,
-  // `name` pointer is to .progmem rather than to RAM; name is at most 32 bytes including null terminator.
+  // `name` pointer is to .progmem rather than to RAM.
   NAME_IN_FLASH = 1 << 1,
   // The word itself is stored in flash, and what we're looking at is a temporary copy in RAM.
   // Also implies that `next` is the offset from the address of this word to the address of the next,
