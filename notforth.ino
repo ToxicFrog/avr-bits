@@ -10,15 +10,7 @@ void setup() {
   load_core_words();
 
 #ifdef SERIAL_REPL
-  Serial.begin(9600);
-
-  while(!Serial) {
-    delay(100);
-  }
-
-  Serial.println(F("Initialization complete."));
-  Serial.print(F("Pointer size: ")); Serial.println(sizeof(void*), 16);
-  Serial.print(F("Word size: ")); Serial.println(sizeof(Word));
+  tty_init();
 #endif SERIAL_REPL
 }
 

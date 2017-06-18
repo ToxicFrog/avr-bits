@@ -2,12 +2,18 @@
 // tty.c (linux).
 
 #pragma once
+
 #include <stdlib.h>
+#include <stdio.h>
 
-char tty_peek();
-char tty_next();
-int tty_eof();
+void tty_init();
 
-void print(const char *);
-#define println(str) { print(str); print("\r\n"); }
-void printint(const int);
+int tty_fputc(char ch, FILE* tty);
+int tty_fgetc(FILE* tty);
+
+int tty_peek();
+int tty_next();
+
+#define print(str) printf("%s", str)
+#define println(str) printf("%s\n", str)
+#define printint(n) printf("%u", (unsigned int)(n))

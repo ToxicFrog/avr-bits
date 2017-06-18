@@ -36,7 +36,7 @@ int lex_input() {
     compile_abort();
     STACKP = old_sp;
     // consume remaining input or the user is gonna have a bad time
-    while (tty_peek() != '\n' && tty_peek() != '\0') tty_next();
+    while (tty_peek() != '\n' && tty_peek() != EOF) tty_next();
     if (tty_peek() == '\n') tty_next();
     return false;
   }
@@ -47,7 +47,7 @@ int lex_input() {
       // End of line. If not inside a function, finish this lexer cycle.
       tty_next();
       if (!compiling) break;
-    } else if (tty_peek() == '\0') {
+    } else if (tty_peek() == EOF) {
       // End of input. Like \n but die if we can't finish.
       if (!compiling) break;
       error("EOF inside function definition.");
@@ -111,7 +111,7 @@ void lex_token() {
 }
 
 void lex_linecomment() {
-  while (tty_peek() != '\n' && tty_peek() != '\0') tty_next();
+  while (tty_peek() != '\n' && tty_peek() != EOF) tty_next();
 }
 
 void lex_blockcomment() {

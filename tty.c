@@ -1,34 +1,31 @@
 #include "tty.h"
 
-#ifdef LINUX
-
 #include <stdio.h>
 
-#include "error.h"
+#ifdef LINUX
 
-int tty_eof() {
-  return feof(stdin);
+void tty_init() {}
+
+int tty_fputc(char ch, FILE* tty) {
+  return fputc(ch, tty);
 }
 
-char tty_peek() {
-  if (tty_eof()) return '\0';
-  int next = getc(stdin);
-  ungetc(next, stdin);
+int tty_fgetc(FILE* tty) {
+  return fgetc(tty);
+}
+
+#else
+
+// TODO definitions of tty_get/put here for AVR
+
+#endif
+
+int tty_peek() {
+  int next = fgetc(stdin);
+  if (next != EOF) ungetc(next, stdin);
   return next;
 }
 
-char tty_next() {
-  int next = getc(stdin);
-  CHECK(next != EOF, "Attempt to read past end of input.");
-  return next;
+int tty_next() {
+  return fgetc(stdin);
 }
-
-void print(const char * msg) {
-  printf("%s", msg);
-}
-
-void printint(const int n) {
-  printf("%d", n);
-}
-
-#endif  // LINUX

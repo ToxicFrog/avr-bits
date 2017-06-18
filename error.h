@@ -6,7 +6,7 @@
 
 extern jmp_buf catchpoint;
 #define error(msg) {\
-  print(__FILE__); print(":"); printint(__LINE__); print(": error: "); println(msg) \
+  print(__FILE__); print(":"); printint(__LINE__); print(": error: "); println(msg); \
   longjmp(catchpoint, 1); \
 }
 

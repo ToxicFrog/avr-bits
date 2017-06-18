@@ -9,11 +9,10 @@
 
 extern Word* compiling;
 void repl() {
-  while(!tty_eof()) {
-    if (compiling) print("compile ");
-    print("[");
-    printint(STACKP);
-    print("] ");
+  while(true) {
+    printf_P(PSTR("[%u%s "), STACKP, compiling ? ">>" : "]");
+
+    if (tty_peek() == EOF) break;
     if (!lex_input()) continue;
     WordImpl* code = (WordImpl*)pop();
     if (!setjmp(catchpoint)) {
