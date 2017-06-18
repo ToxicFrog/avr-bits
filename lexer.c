@@ -167,8 +167,7 @@ void lex_number() {
   char* buf = readuntil(isspace);
   Cell num = strtol(buf, &buf, 0);
   if (*buf) {
-    print("At input: "); println(buf);
-    error("Invalid number.");
+    error("Invalid number: %s", buf);
     return;
   }
   compile_number(num);
@@ -179,8 +178,7 @@ void lex_addressof() {
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    print("At input: @"); println(name);
-    error("Attempt to take address of undefined word.");
+    error("Can't take address of undefined word '%s'", name);
     return;
   }
   compile_addressof(word);
@@ -190,8 +188,7 @@ void lex_word() {
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    print("At input: "); println(name);
-    error("Attempt to call undefined word");
+    error("Can't call undefined word '%s'", name);
     return;
   }
   compile_word(word);

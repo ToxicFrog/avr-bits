@@ -5,15 +5,16 @@
 #include "tty.h"
 
 extern jmp_buf catchpoint;
-#define error(msg) {\
-  print(__FILE__); print(":"); printint(__LINE__); print(": error: "); println(msg); \
+#define error(fmt, ...) {\
+  printf_P(PSTR(__FILE__ ":%u: " fmt "\n"), __LINE__, ##__VA_ARGS__); \
   longjmp(catchpoint, 1); \
 }
 
 #ifdef SAFETY_CHECKS
-  #define CHECK(condition, msg) if (!(condition)) error(msg);
-  #define CHECK_MALLOC(var, size, msg) var = malloc(size); CHECK(var != NULL, msg)
+  #define CHECK(condition, ...) if (!(condition)) error(__VA_ARGS__);
+  #define CHECK_MALLOC(var, size, what) var = malloc(size); \
+            CHECK(var != NULL, "Can't allocate %lu bytes for " what ".", size)
 #else
-  #define CHECK(condition, msg)
-  #define CHECK_MALLOC(var, size, msg) var = malloc(size)
+  #define CHECK(condition, ...)
+  #define CHECK_MALLOC(var, size, what) var = malloc(size)
 #endif

@@ -1,10 +1,11 @@
 #pragma once
 
 // Enable runtime safety checks for things like stack over/underflow and malloc
-// failures. Small code size/runtime performance impact.
+// failures.
 // If enabled, these errors will result in a message being printed and a longjmp
 // back to the last known safe state. If disabled, these errors are completely
 // unchecked and, if they occur, will (at best) crash the program/reset the AVR.
+// Adds about 2k of flash, mostly for error message strings.
 #define SAFETY_CHECKS
 
 // Size of data stack, in machine words (== 2 bytes each on AVR, 8 bytes on amd64).

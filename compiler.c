@@ -33,8 +33,7 @@ void c_callword(Word*);
 // Create a new, blank Word definition and put it on the compilation stack.
 void word_beginfn() {
   Word* word;
-  CHECK_MALLOC(word, sizeof(Word),
-    "Failed to allocate dictionary entry for anonymous function");
+  CHECK_MALLOC(word, sizeof(Word), "anonymous function dictionary entry");
   word->next = compiling;
   word->execute = (WordImpl)STACKP; // save stack pointer so we can figure out where the bytecode starts later
   word->name = NULL;
@@ -63,8 +62,7 @@ void word_endfn() {
   size_t len = STACKP - (size_t)word->execute;
   STACKP = (size_t)word->execute;
   Cell* body;
-  CHECK_MALLOC(body, len * sizeof(Cell),
-    "Failed to allocate bytecode buffer for anonymous function");
+  CHECK_MALLOC(body, len * sizeof(Cell), "anonymous function body");
   memcpy(body, &STACK[STACKP], len * sizeof(Cell));
   word->execute = (WordImpl)body;
 
@@ -173,7 +171,9 @@ size_t nrof_cdefs = 0;
 void word_cfile() {
   char* name = (char*)pop();
   if (name) {
-    CHECK(!cimpl, "Attempt to open a new file with c/file without closing the current one.");
+    CHECK(!cimpl,
+      "Attempt to open %s.{dict,impl} when there's already a c/file open.",
+      name);
     sprintf(cname, "%s.impl", name);
     cimpl = fopen(cname, "w");
     sprintf(cname, "%s.dict", name);
@@ -184,7 +184,7 @@ void word_cfile() {
     fprintf(cdict, "// Words from %s\n\n", name);
     free(name);
   } else {
-    CHECK(cimpl, "Attempt to close c/file when there isn't one open.");
+    CHECK(cimpl, "Attempt to close a c/file without one open.");
     // Finalize everything.
 
     Word* cdef = DICTIONARY;
@@ -222,7 +222,7 @@ void word_cdefn() {
 // Functions for compiling words written in notforth into C.
 
 // How much space we allocate for a function definition.
-#define C_IMPL_BUFSIZE 4096
+#define C_IMPL_BUFSIZE (size_t)4096
 #include <stdarg.h>
 
 void c_append(const char * fmt, ...) {
@@ -237,8 +237,7 @@ void c_append(const char * fmt, ...) {
 
 void c_beginfn(Word* word) {
   if (!compiling || !cimpl) return;
-  CHECK_MALLOC(compiling->name, C_IMPL_BUFSIZE,
-    "Failed to allocate buffer for C source code.");
+  CHECK_MALLOC(compiling->name, C_IMPL_BUFSIZE, "buffer for C source code");
   c_append("\nvoid word_anon_%p() {\n", word);
 }
 

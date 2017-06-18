@@ -15,17 +15,17 @@ Cell STACK[STACKSIZE];
 size_t STACKP = 0; // points to the empty slot just above the last stack slot
 
 Cell peek() {
-  CHECK(STACKP > 0, "stack underflow peeking");
+  CHECK(STACKP > 0, "stack underflow in peek()");
   return STACK[STACKP-1];
 }
 
 Cell pop() {
-  CHECK(STACKP > 0, "stack underflow popping");
+  CHECK(STACKP > 0, "stack underflow in pop()");
   return STACK[--STACKP];
 }
 
 void push(Cell val) {
-  CHECK(STACKP < STACKSIZE, "stack overflow pushing");
+  CHECK(STACKP < STACKSIZE, "stack overflow in push()");
   STACK[STACKP++] = val;
 }
 
