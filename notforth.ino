@@ -1,9 +1,10 @@
 #include "common.h"
 
 extern "C" {
-#include "dictionary.h"
-#include "repl.h"
-#include "corewords.h"
+  #include "dictionary.h"
+  #include "repl.h"
+  #include "corewords.h"
+  #include "tty.h"
 }
 
 void setup() {

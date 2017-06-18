@@ -1,8 +1,27 @@
+#include "common.h"
+
 #include "tty.h"
 
 #include <stdio.h>
 
-#ifdef LINUX
+int tty_peek() {
+  int next = fgetc(stdin);
+  if (next != EOF) ungetc(next, stdin);
+  return next;
+}
+
+int tty_next() {
+  return fgetc(stdin);
+}
+
+
+#ifndef SERIAL_REPL
+
+void tty_init() {}
+int tty_fputc(char ch, FILE* tty) { return EOF; }
+int tty_fgetc(FILE* tty) { return EOF; }
+
+#elif defined(LINUX)
 
 void tty_init() {}
 
@@ -16,16 +35,49 @@ int tty_fgetc(FILE* tty) {
 
 #else
 
-// TODO definitions of tty_get/put here for AVR
+#include <avr/io.h>
 
+#ifndef F_CPU
+  #warning F_CPU not defined, assuming 16MHz
+  #define F_CPU 16000000UL
 #endif
 
-int tty_peek() {
-  int next = fgetc(stdin);
-  if (next != EOF) ungetc(next, stdin);
-  return next;
+#define BAUD 9600
+
+#include <util/setbaud.h>
+
+void tty_init() {
+  // UBRR*_VALUE and USE_2X provided by setbaud.h
+  UBRR0H = UBRRH_VALUE;
+  UBRR0L = UBRRL_VALUE;
+
+#if USE_2X
+  UCSR0A |= _BV(U2X0);
+#else
+  UCSR0A &= ~(_BV(U2X0));
+#endif
+
+  UCSR0C = _BV(UCSZ01) | _BV(UCSZ00); /* 8-bit data */
+  UCSR0B = _BV(RXEN0) | _BV(TXEN0);   /* Enable RX and TX */
+
+  fdevopen(tty_fputc, tty_fgetc);
 }
 
-int tty_next() {
-  return fgetc(stdin);
+int tty_fputc(char c, FILE* tty) {
+  if (c == '\n') {
+      tty_fputc('\r', tty);
+  }
+  loop_until_bit_is_set(UCSR0A, UDRE0);
+  UDR0 = c;
+  return c;
 }
+
+int tty_fgetc(FILE* tty) {
+  loop_until_bit_is_set(UCSR0A, RXC0);
+  // Echo back to the typist
+  int ch = UDR0;
+  tty_fputc(ch, tty);
+  return ch;
+}
+
+#endif
