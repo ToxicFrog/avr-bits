@@ -19,5 +19,5 @@
 
 // Whether to enable the serial REPL for the Arduino build.
 // Turning this off disables the ability to run code by typing it into the
-// serial port, but also saves about 350b of RAM and 6k of flash.
+// serial port, but also saves about 3k of flash.
 #define SERIAL_REPL
