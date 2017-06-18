@@ -17,10 +17,12 @@ extern "C" void tty_init() {
 }
 
 extern "C" int tty_fputc(char ch, FILE* tty) {
+  (void)tty;
   return Serial.write(ch);
 }
 
 extern "C" int tty_fgetc(FILE* tty) {
+  (void)tty;
   while (!Serial.available()) {
     delay(10);
   }

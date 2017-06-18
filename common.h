@@ -23,5 +23,7 @@
 
 #define STACKBYTES (STACKSIZE * sizeof(Cell))
 
-#define false 0
-#define true (~false)
+#ifndef true
+  #define false 0
+  #define true (~false)
+#endif

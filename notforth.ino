@@ -11,7 +11,7 @@ void setup() {
 
 #ifdef SERIAL_REPL
   tty_init();
-#endif SERIAL_REPL
+#endif
 }
 
 void loop() {
