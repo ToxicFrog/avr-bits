@@ -11,6 +11,7 @@ At the moment it depends on the Arduino libraries for serial access, but this is
  * Functions can be compiled on the host to be stored in flash on the AVR
  * Small memory footprint (<200 bytes)
  * Features (such as the REPL) can be selectively omitted to converse flash
+ * Sublime Text syntax hilighting rules (in `share/`)
 
 ## Building
 
@@ -114,3 +115,5 @@ Pops a function pointer from the stack and prints to the terminal the decompiled
  * Example program on the arduino
  * Rewrite REPL in notforth; ability to compile in a `main` function
  * Replace Arduino serial library with notforth and/or C one
+ * String/function interning; this will make compilation slower, but at runtime, who cares?
+

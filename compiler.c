@@ -45,8 +45,6 @@ void word_beginfn() {
 // Finalize a word definition: pop all bytecode on the data stack back to the
 // last {, copy it into the Word on top of the compilation stack, then link
 // the Word into the dictionary without a name and push it onto the data stack.
-// TODO: if running on the host and in c/file mode, also emit an appropriate
-// C function definition for it.
 void word_endfn() {
   CHECK(compiling, "} with no matching {");
 
@@ -74,7 +72,6 @@ void word_endfn() {
 }
 
 // Functions for actually emitting bytecode. All bytecode goes on the stack.
-// TODO: also emit appropriate C code if we're in both c/file and compilation state.
 
 void compile_string(const char * str) {
   push((Cell)OP_PUSHLITERAL);
@@ -215,6 +212,9 @@ void word_cdefn() {
   fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
   free(body);
 
+  // Store a no-op version in the dictionary. We can't call it without recompiling,
+  // but this lets us compile references to it, so functions later in a file can
+  // refer to functions defined earlier in it.
   register_word(name, NULL)->flags |= IS_BYTECODE;
   ++nrof_cdefs;
 }

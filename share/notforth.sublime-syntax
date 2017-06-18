@@ -1,0 +1,63 @@
+%YAML 1.2
+---
+name: notforth
+file_extensions:
+  - nf
+scope: source.nf
+fileTypes: []
+uuid: 323576be-8d1a-45a0-b0de-24a978ac1380
+contexts:
+  main:
+    - include: comments
+    - include: strings
+    - include: numbers
+    - match: (?:^|\s)(@[^\s]+)
+      # TODO: find something better for this
+      scope: entity.name.nf
+    - match: (?:^|\s)(\{)
+      captures:
+        1: punctuation.section.block.begin
+      push:
+        - meta_scope: meta.block
+        - match: (?:^|\s)(\})
+          captures:
+            1: punctuation.section.block.end
+          pop: true
+  comments:
+    - match: (?:^|\s)(#).*$\n?
+      scope: comment.line.nf
+      captures:
+        1: punctuation.definition.comment.nf
+    - match: (?:^|\s)(\()
+      captures:
+        1: punctuation.definition.comment.nf
+      push:
+        - meta_scope: comment.block.nf
+        - match: (\))
+          captures:
+            1: punctuation.definition.comment.nf
+          pop: true
+  numbers:
+    - match: (?:^|\s)0x[0-9a-fA-F]+
+      scope: constant.numeric.hex.nf
+    - match: (?:^|\s)[0-9]+
+      scope: constant.numeric.integer.nf
+  strings:
+    - match: "'"
+      scope: punctuation.definition.string.begin.nf
+      push:
+        - meta_scope: string.quoted.single.nf
+        - match: "'"
+          scope: punctuation.definition.string.end.nf
+          pop: true
+    - match: '"'
+      scope: punctuation.definition.string.begin.nf
+      push:
+        - meta_scope: string.quoted.double.nf
+        - match: '"'
+          scope: punctuation.definition.string.end.nf
+          pop: true
+    - match: (?:^|\s)(:[^\s]+)
+      captures:
+        1: entity.name.nf
+...
