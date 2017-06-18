@@ -2,6 +2,10 @@
 
 #ifdef SERIAL_REPL
 
+extern "C" {
+  #include "tty.h"
+}
+
 extern "C" void tty_init() {
   Serial.begin(9600);
 
