@@ -9,10 +9,12 @@
   #define PROGMEM
   #define PSTR(s) s
   #define pgm_read_byte(x) *(x)
-  #define strcpy_P(dst, src) strcpy(dst, src)
-  #define strcmp_P(s1, s2) strcmp(s1, s2)
-  #define memcpy_P(dst, src, len) memcpy(dst, src, len)
-  #define printf_P(...) printf(__VA_ARGS__)
+  #define strcpy_P strcpy
+  #define strcmp_P strcmp
+  #define memcpy_P memcpy
+  #define printf_P printf
+  #define puts_P puts
+  #define fputs_P fputs
 #endif
 
 #ifdef ARDUINO

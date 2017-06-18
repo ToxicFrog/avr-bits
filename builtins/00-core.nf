@@ -3,17 +3,17 @@
 "00-core.nf" c/file
 
 (print int)
-:. 'printint(pop()); println("");' c/defn
+:. 'printf_P(PSTR("%lu\n"), (unsigned long)pop());' c/defn
 
 (print char*)
-:s. 'println((const char*)pop());' c/defn
+:s. 'puts((const char*)pop());' c/defn
 
 (dump stack contents)
 :.s '
-  print("Stack size: "); printint(STACKP); println("");
+  printf_P(PSTR("Stack size: %lu\n"), (unsigned long)STACKP);
   for (int i = STACKP-1; i >= 0; --i) {
-    printint(STACK[i]); println(""); }
-  println("----");
+    printf_P(PSTR("  [%2u] %lu\n"), i, (unsigned long)(STACK[i]));
+  }
 ' c/defn
 
 :bye '

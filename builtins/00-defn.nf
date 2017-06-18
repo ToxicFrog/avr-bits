@@ -5,7 +5,7 @@
 (name body defn -- )
 (Bind the name to the function body. The body can either be an inline function
   literal, e.g. :inc { 1 + } defn, or the value of an existing function, e.g.
-  :println &. defn)
+  :println @. defn)
 :defn "
   Word* word = (Word*)pop();
   word->name = (char*)pop();

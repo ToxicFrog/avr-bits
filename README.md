@@ -9,7 +9,8 @@ At the moment it depends on the Arduino libraries for serial access, but this is
  * Runs on both amd64 Linux and AVR
  * REPL (stdin/stdout on Linux, UART0 on AVR)
  * Functions can be compiled on the host to be stored in flash on the AVR
- * Small! <200b RAM, <2k flash if you omit the REPL
+ * Small memory footprint (<200 bytes)
+ * Features (such as the REPL) can be selectively omitted to converse flash
 
 ## Building
 
@@ -97,7 +98,7 @@ These are used to generate code for functions and macros implemented in C but de
 
 `words --`
 
-List all functions in the dictionary, most recent to least (i.e. functions listed earlier will take precedence over those listed later), in the format: `<address of dictionary entry>:<address of code> <name of function> [<flags>]`.
+List all functions in the dictionary, most recent to least (i.e. functions listed earlier will take precedence over those listed later), in the format: `<address of dictionary entry>:<address of code> [<flags>] <name of function>`.
 
 Most of this information is only useful for debugging notforth itself; note, furthermore, that the "address of dictionary entry" will be the same for every word stored in flash, as it instead points to a temporary buffer in RAM that the word is copied to for inspection.
 

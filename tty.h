@@ -14,11 +14,6 @@ int tty_fgetc(FILE* tty);
 int tty_peek();
 int tty_next();
 
-
-#define print(str) printf("%s", str)
-#define println(str) printf("%s\n", str)
-#define printint(n) printf("%u", (unsigned int)(n))
-
 #ifndef SERIAL_REPL
 
 #define printf(...)

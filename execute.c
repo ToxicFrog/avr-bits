@@ -49,19 +49,19 @@ void execute_word(Word* word) {
   }
 }
 
-void execute_bytecode(const WordImpl* bytecode) {
+void execute_bytecode(const WordImpl* ip) {
   // Each WordImpl is either:
   // OP_EOF: stop executing
   // OP_PUSHLITERAL <val>: push val onto the data stack
   // OP_CALLWORD <ptr>: treat ptr as a Word* and execute it
   // or a pointer to a C function to call.
-  for (int IP = 0; bytecode[IP] != OP_EOF; ++IP) {
-    if (bytecode[IP] == OP_PUSHLITERAL) {
-      push((Cell)bytecode[++IP]);
-    } else if (bytecode[IP] == OP_CALLWORD) {
-      execute_bytecode((WordImpl*)bytecode[++IP]);
+  for (; *ip != OP_EOF; ++ip) {
+    if (*ip == OP_PUSHLITERAL) {
+      push((Cell)*(++ip));
+    } else if (*ip == OP_CALLWORD) {
+      execute_bytecode((WordImpl*)*(++ip));
     } else {
-      bytecode[IP]();
+      (*ip)();
     }
   }
 }
