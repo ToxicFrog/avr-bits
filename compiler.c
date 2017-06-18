@@ -48,7 +48,7 @@ void word_beginfn() {
 // TODO: if running on the host and in c/file mode, also emit an appropriate
 // C function definition for it.
 void word_endfn() {
-  CHECK(!compiling, "} with no matching {");
+  CHECK(compiling, "} with no matching {");
 
   c_endfn(compiling);
 
