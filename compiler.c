@@ -163,7 +163,6 @@ const char * mangle(const char * name) {
 FILE * cimpl = NULL;
 FILE * cdict = NULL;
 char cname[STACKBYTES];
-size_t nrof_cdefs = 0;
 
 void word_cfile() {
   char* name = (char*)pop();
@@ -181,17 +180,8 @@ void word_cfile() {
     fprintf(cdict, "// Words from %s\n\n", name);
     free(name);
   } else {
-    CHECK(cimpl, "Attempt to close a c/file without one open.");
     // Finalize everything.
-
-    Word* cdef = DICTIONARY;
-    while (nrof_cdefs) {
-      nrof_cdefs--;
-      const char* mangled_name = mangle(cdef->name);
-      fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d },\n",
-        mangled_name, mangled_name, cdef->flags & ~IS_BYTECODE);
-      do { cdef = next_word(cdef); } while(!cdef->name);
-    }
+    CHECK(cimpl, "Attempt to close a c/file without one open.");
     fclose(cdict); cdict = NULL;
     fclose(cimpl); cimpl = NULL;
   }
@@ -205,6 +195,7 @@ void word_cdefn() {
   char* body = (char*)pop();
   const char* name = (char*)pop();
   const char* mangled_name = mangle(name);
+  printf("c/impl: '%s' => '%s'\n", name, mangled_name);
 
   // Write the implementation
   fprintf(cimpl, "\nconst PROGMEM char word_%s_name[] = \"%s\";\n",
@@ -212,11 +203,14 @@ void word_cdefn() {
   fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
   free(body);
 
+  // Write the dictionary entry.
+  fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH },\n",
+    mangled_name, mangled_name);
+
   // Store a no-op version in the dictionary. We can't call it without recompiling,
   // but this lets us compile references to it, so functions later in a file can
   // refer to functions defined earlier in it.
   register_word(name, NULL)->flags |= IS_BYTECODE;
-  ++nrof_cdefs;
 }
 
 // Functions for compiling words written in notforth into C.
