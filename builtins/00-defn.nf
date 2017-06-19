@@ -40,4 +40,6 @@
 # TODO: words to clean up words? In particular, a way to free a word, and a way
 # to unlink a word from the dictionary.
 
+:exec 'execute_word((Word*)pop());' c/defn
+
 0 c/file
