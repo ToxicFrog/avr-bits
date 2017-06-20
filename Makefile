@@ -37,6 +37,7 @@ builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
 # into the build, but it does not *require* them, and including that dependency
 # explictly would make the build graph cyclical.
 nf-bootstrap: ${SRCS} ${HDRS}
+	touch builtins/all.h builtins/all.c
 	${CC} -DLINUX -o nf-bootstrap ${SRCS}
 
 .SUFFIXES:

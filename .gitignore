@@ -2,3 +2,5 @@ notforth
 nf-bootstrap
 builtins/*.nf.impl
 builtins/*.nf.dict
+builtins/all.c
+builtins/all.h
