@@ -89,6 +89,15 @@ void compile_word(Word* word) {
 }
 
 void compile_addressof(Word* word) {
+  // If the word is in ROM, we create a copy of the dictionary entry in RAM and
+  // push that -- it'll take precedence over the version in ROM from now on.
+  // Otherwise we end up pushing the address of the temporary buffer used by
+  // find_word, which is invalidated next time it gets called.
+  if (word->flags & SELF_IN_FLASH) {
+    Word* ram_word = register_word(word->name, word->execute);
+    ram_word->flags = word->flags & ~SELF_IN_FLASH;
+    word = ram_word;
+  }
   push((Cell)OP_PUSHLITERAL);
   push((Cell)word);
   c_pushword(word);
