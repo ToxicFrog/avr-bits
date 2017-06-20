@@ -94,9 +94,7 @@ void compile_addressof(Word* word) {
   // Otherwise we end up pushing the address of the temporary buffer used by
   // find_word, which is invalidated next time it gets called.
   if (word->flags & SELF_IN_FLASH) {
-    Word* ram_word = register_word(word->name, word->execute);
-    ram_word->flags = word->flags & ~SELF_IN_FLASH;
-    word = ram_word;
+    word = register_word(word->name, word->execute, word->flags & ~SELF_IN_FLASH);
   }
   push((Cell)OP_PUSHLITERAL);
   push((Cell)word);

@@ -93,5 +93,5 @@ void load_core_words() {
   // We place `words` outside flash both because we need at least one dictionary
   // entry in RAM to contain the first NEXT_IN_FLASH, and because it's useful to
   // have available ~always for troubleshooting issues with flash dictionary traversal.
-  register_word("words", word_words)->flags |= NEXT_IN_FLASH;
+  register_word("words", word_words, NEXT_IN_FLASH);
 }

@@ -29,7 +29,7 @@
   be pushed onto the stack.)
 :defconst '
   WordImpl val = (WordImpl)pop();
-  register_word((const char*)pop(), val)->flags |= IS_CONSTANT;
+  register_word((const char*)pop(), val, IS_CONSTANT);
 ' c/defn
 
 (name size defvar -- )

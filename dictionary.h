@@ -41,5 +41,5 @@ typedef enum WordFlags {
 extern Word* DICTIONARY;
 
 Word* find_word(const char*);
-Word* register_word(const char*, void (*)(void));
+Word* register_word(const char*, void (*)(void), uint8_t);
 Word* next_word(Word*);

@@ -46,14 +46,14 @@ Word* find_word(const char* name) {
   return NULL;
 }
 
-Word* register_word(const char* name, void (*exec)(void)) {
+Word* register_word(const char* name, void (*exec)(void), uint8_t flags) {
   Word* word;
   CHECK_MALLOC(word, sizeof(Word),
     "Failed to allocate dictionary entry for builtin function.");
   word->next = DICTIONARY;
   word->execute = exec;
   word->name = name;
-  word->flags = 0x00;
+  word->flags = flags;
   DICTIONARY = word;
   return word;
 }

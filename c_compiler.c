@@ -91,7 +91,7 @@ void word_cdefn() {
   // Store a no-op version in the dictionary. We can't call it without recompiling,
   // but this lets us compile references to it, so functions later in a file can
   // refer to functions defined earlier in it.
-  register_word(name, NULL)->flags |= IS_BYTECODE;
+  register_word(name, NULL, IS_BYTECODE);
 }
 
 // Functions for compiling words written in notforth into C.
