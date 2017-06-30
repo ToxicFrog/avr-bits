@@ -21,59 +21,16 @@ void lex_number();
 void lex_addressof();
 void lex_word();
 
-// Top level command to process input and turn it into bytecode.
-// Repeatedly eats whitespace, then reads and compiles a token.
-// If the whitespace includes \n or hits EOF and there are no unfinished functions
-// on the compilation stack, finalizes and pushes the bytecode for what it's
-// processed so far and returns true.
-// If there are and it hits \n it keeps reading.
-// If it hits EOF and the compilation stack is nonempty, it returns false.
-// On success, leaves on top of the stack a pointer to a bytecode buffer suitable for
-// execution with execute_bytecode(). Caller takes ownership and should free it.
-int lex_input() {
-  size_t old_sp = STACKP;
-  if (setjmp(catchpoint)) {
-    compile_abort();
-    STACKP = old_sp;
-    // consume remaining input or the user is gonna have a bad time
-    while (tty_peek() != '\n' && tty_peek() != EOF) tty_next();
-    if (tty_peek() == '\n') tty_next();
-    return false;
-  }
-
-  while(true) {
-    lex_whitespace();
-    if (tty_peek() == '\n') {
-      // End of line. If not inside a function, finish this lexer cycle.
-      tty_next();
-      if (!compiling) break;
-    } else if (tty_peek() == EOF) {
-      // End of input. Like \n but die if we can't finish.
-      if (!compiling) break;
-      error("EOF inside function definition.");
-      return false;
-    } else {
-      lex_token();
-    }
-  }
-
-  // We finished reading a bunch of input! malloc() up a buffer for the generated
-  // bytecode and push a pointer to it.
-  compile_eof();
-  size_t len = (STACKP - old_sp) * sizeof(WordImpl);
-  WordImpl* bytecode;
-  CHECK_MALLOC(bytecode, len,
-    "Failed to allocate bytecode buffer for user input.");
-  memcpy(bytecode, &STACK[old_sp], len);
-  STACKP = old_sp;
-  push((Cell)bytecode);
-  return true;
-}
-
-// Consume input up to newline, EOF, or non-whitespace.
-void lex_whitespace() {
-  // Drop input until the character we are *about* to read is either \n or non-whitespace.
-  for (char ch = tty_peek(); isspace(ch) && ch != '\n'; ch = tty_peek()) tty_next();
+void lex_error() {
+  // Unwind the compilation stack if we're in compile state.
+  compile_abort();
+  // Consume remaining input. If we hit EOL rather than EOF, this leaves \n in
+  // the input buffer so the next call to lex_input ends up executing it and
+  // displaying the prompt, which is what we want.
+  while (tty_peek() != '\n' && tty_peek() != EOF) tty_next();
+  // Restore the old jump target and return from it.
+  uncatch_error();
+  qerror();
 }
 
 // Process a single token from the input.
@@ -83,31 +40,65 @@ void lex_whitespace() {
 // compile_foo(), which pushes appropriate bytecode onto the stack.
 // In c/file mode, compile_foo() will also emit appropriate C code.
 void lex_token() {
-  char ch = tty_peek();
+  if (catch_error()) return lex_error();
+
+  // Drop input until the character we are *about* to read is either \n or non-whitespace.
+  char ch;
+  for (ch = tty_peek(); isspace(ch) && ch != '\n'; ch = tty_peek()) tty_next();
   switch (ch) {
     // Line comment.
-    case '#': return lex_linecomment();
+    case '#':
+      lex_linecomment();
+      break;
+
     // Block comment.
-    case '(': return lex_blockcomment();
+    case '(':
+      lex_blockcomment();
+      break;
+
     // Addressof.
-    case '@': return lex_addressof();
+    case '@':
+      lex_addressof();
+      break;
+
     // String, possibly multiline.
     case '"':
     case '\'':
-      return lex_longstring();
+      lex_longstring();
+      break;
+
     // Token string.
-    case ':': return lex_shortstring();
-    default: break;
+    case ':':
+      lex_shortstring();
+      break;
+
+    // End of line.
+    case '\n':
+      tty_next();
+      if (!compiling)
+        execute_word(find_word("prompt"));
+      break;
+
+    // End of input. Should never happen on AVR, might on Linux.
+    case EOF:
+      if (compiling)
+        error("EOF while reading function body.");
+      break;
+
+    // Numbers and function calls.
+    default:
+      if (isdigit(ch)) {
+        // No support for negatives yet.
+        lex_number();
+      } else {
+        lex_word();
+      }
+      break;
   }
 
-  // If we get here it's either a number or a word.
-  // No support for negatives as yet, it makes distinguishing a negative number
-  // and the word `-` tricky.
-  if (isdigit(ch)) {
-    return lex_number();
-  }
-
-  return lex_word();
+  // Yay! We processed a token without encountering any errors. Free up the
+  // catchpoint we claimed at the start of the function.
+  uncatch_error();
 }
 
 void lex_linecomment() {

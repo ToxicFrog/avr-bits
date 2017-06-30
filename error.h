@@ -4,10 +4,17 @@
 
 #include "tty.h"
 
-extern jmp_buf catchpoint;
+extern size_t  jmp_buf_index;
+extern jmp_buf jmp_bufs[NROF_JMP_BUFS];
+
+#define catch_error() setjmp(jmp_bufs[jmp_buf_index++])
+#define uncatch_error() { jmp_buf_index--; }
+
+#define qerror() longjmp(jmp_bufs[--jmp_buf_index], 1)
+
 #define error(fmt, ...) {\
   printf_P(PSTR(__FILE__ ":%u: " fmt "\n"), __LINE__, ##__VA_ARGS__); \
-  longjmp(catchpoint, 1); \
+  qerror(); \
 }
 
 #ifdef SAFETY_CHECKS

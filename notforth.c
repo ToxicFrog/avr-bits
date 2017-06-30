@@ -18,22 +18,28 @@
 #include "execute.h"
 #include "error.h"
 
+void silent_prompt() {}
+
 void run_file(const char* file) {
   stdin = fopen(file, "r");
+  if (catch_error()) {
+    printf("Error executing file '%s'\n", file);
+    fclose(stdin);
+    return;
+  }
+
   while (!feof(stdin)) {
-    if (!lex_input()) break;
-    if (setjmp(catchpoint)) break;
-    WordImpl* bytecode = (WordImpl*)pop();
-    execute_bytecode(bytecode);
-    free(bytecode);
+    lex_token();
   }
   fclose(stdin);
+  uncatch_error();
 }
 
 int main(int argc, char ** argv) {
   load_core_words();
 
   if (argc > 1) {
+    register_word("prompt", silent_prompt, 0);
     fclose(stdin);
     for (int i = 1; i < argc; ++i) {
       run_file(argv[i]);

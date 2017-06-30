@@ -34,50 +34,54 @@ void word_endfn() {
 
   c_endfn(compiling);
 
-  // Pop it from the compilation stack.
-  Word* word = compiling;
-  compiling = word->next;
-
   // Copy the wordlist off the stack and restore old STACKP.
   // word->execute is the value of STACKP just before we started writing instructions.
   compile_eof();
-  size_t len = STACKP - (size_t)word->execute;
-  STACKP = (size_t)word->execute;
+  size_t len = STACKP - (size_t)compiling->execute;
+  STACKP = (size_t)compiling->execute;
   Cell* body;
   CHECK_MALLOC(body, len * sizeof(Cell), "anonymous function body");
   memcpy(body, &STACK[STACKP], len * sizeof(Cell));
-  word->execute = (WordImpl)body;
+  compiling->execute = (WordImpl)body;
+
+  // Pop it from the compilation stack.
+  Word* word = compiling;
+  compiling = word->next;
 
   // Link the word into the dictionary.
   word->next = DICTIONARY;
   DICTIONARY = word;
 
+  // Push the address of the word onto the stack.
   compile_addressof(word);
 }
 
 // Functions for actually emitting bytecode. All bytecode goes on the stack.
 
+void op_pushliteral(Cell val) {
+  if (compiling) {
+    push((Cell)OP_PUSHLITERAL);
+    push(val);
+  } else {
+    push(val);
+  }
+}
+
 void compile_string(const char * str) {
-  push((Cell)OP_PUSHLITERAL);
-  push((Cell)str);
+  op_pushliteral((Cell)str);
   c_pushstring(str);
 }
 
 void compile_number(Cell num) {
-  push((Cell)OP_PUSHLITERAL);
-  push(num);
+  op_pushliteral(num);
   c_pushnumber(num);
 }
 
-#include <stdio.h>
-
 void compile_word(Word* word) {
-  if (word->flags & IS_IMMEDIATE) {
+  if (!compiling || word->flags & IS_IMMEDIATE) {
     execute_word(word);
   } else if (word->flags & IS_CONSTANT) {
-    push((Cell)OP_PUSHLITERAL);
-    push((Cell)word->execute);
-    c_pushnumber((Cell)word->execute);
+    compile_number((Cell)word->execute);
   } else if (word->flags & IS_BYTECODE) {
     push((Cell)OP_CALLWORD);
     push((Cell)word->execute);
@@ -96,20 +100,21 @@ void compile_addressof(Word* word) {
   if (word->flags & SELF_IN_FLASH) {
     word = register_word(word->name, word->execute, word->flags & ~SELF_IN_FLASH);
   }
-  push((Cell)OP_PUSHLITERAL);
-  push((Cell)word);
+  op_pushliteral((Cell)word);
   c_pushword(word);
 }
 
 void compile_eof() {
-  push((Cell)OP_EOF);
+  if (compiling) push((Cell)OP_EOF);
 }
 
 // Called when something has gone wrong; the caller wants us to unwind the
 // compilation stack and clean up after ourselves.
+// If not currently compiling, this is a no-op.
 void compile_abort() {
   while (compiling) {
     Word* tmp = compiling;
+    STACKP = (size_t)tmp->execute;
     compiling = tmp->next;
     if (tmp->name) free((char*)tmp->name);
     free(tmp);

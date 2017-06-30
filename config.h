@@ -17,6 +17,10 @@
 #define LINUX_STACKSIZE 1024
 #define AVR_STACKSIZE 32
 
+// Size of the longjmp() stack. Notforth itself never uses more than two of these,
+// and those only when processing source code or user input.
+#define NROF_JMP_BUFS 2
+
 // Whether to enable the serial REPL for the Arduino build.
 // Turning this off disables the ability to run code by typing it into the
 // serial port, but also saves about 3k of flash.

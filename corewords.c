@@ -72,9 +72,17 @@ void word_list() {
   }
 }
 
+// Used to display the prompt in the REPL.
+// Defined here so that it can be overridden by notforth.c in file execution mode,
+// before any input is processed.
+void word_prompt() {
+  printf_P(PSTR("\n[%lu%s "), (long unsigned int)STACKP, compiling ? ">>" : "]");
+}
+
 const PROGMEM Word CORE_WORDS[] = {
   { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
   { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
+  { (Word*)1, word_prompt, "prompt", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
 
   #define ENABLE_BUILTINS
   #include "builtins/all.h"

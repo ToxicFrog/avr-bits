@@ -1,3 +1,3 @@
 #pragma once
 
-int lex_input();
+void lex_token();
