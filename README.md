@@ -116,4 +116,4 @@ Pops a function pointer from the stack and prints to the terminal the decompiled
  * Rewrite REPL in notforth; ability to compile in a `main` function
  * Replace Arduino serial library with notforth and/or C one
  * String/function interning; this will make compilation slower, but at runtime, who cares?
-
+ * Support for negative numbers

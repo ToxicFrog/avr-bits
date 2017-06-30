@@ -1,7 +1,7 @@
 SRCS=$(wildcard *.c)
 HDRS=$(wildcard *.h)
 WORDS=$(wildcard builtins/*.nf)
-CC=gcc -std=c99 -Wall -Werror -g -O0
+CC=gcc -std=c99 -Wall -Werror -g -O0 -fno-optimize-sibling-calls
 
 all: notforth
 
