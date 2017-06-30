@@ -76,7 +76,10 @@ void word_list() {
 // Defined here so that it can be overridden by notforth.c in file execution mode,
 // before any input is processed.
 void word_prompt() {
-  printf_P(PSTR("\n[%lu%s "), (long unsigned int)STACKP, compiling ? ">>" : "]");
+  printf_P(PSTR("%s%lu%s "),
+    compiling ? "<" : "\n[",
+    (long unsigned int)STACKP,
+    compiling ? ">  " : "]");
 }
 
 const PROGMEM Word CORE_WORDS[] = {
