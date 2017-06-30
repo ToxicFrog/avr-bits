@@ -24,10 +24,10 @@ void lex_word();
 void lex_error() {
   // Unwind the compilation stack if we're in compile state.
   compile_abort();
-  // Consume remaining input. If we hit EOL rather than EOF, this leaves \n in
-  // the input buffer so the next call to lex_input ends up executing it and
-  // displaying the prompt, which is what we want.
-  while (tty_peek() != '\n' && tty_peek() != EOF) tty_next();
+
+  // Consume remaining input up to (and including) newline.
+  for (int ch = tty_next(); ch != '\n' && ch != EOF; ch = tty_next());
+
   // Restore the old jump target and return from it.
   uncatch_error();
   qerror();
@@ -75,8 +75,7 @@ void lex_token() {
     // End of line.
     case '\n':
       tty_next();
-      if (!compiling)
-        execute_word(find_word("prompt"));
+      execute_word(find_word("prompt"));
       break;
 
     // End of input. Should never happen on AVR, might on Linux.

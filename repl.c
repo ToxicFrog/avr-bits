@@ -8,9 +8,8 @@
 #include "error.h"
 
 void repl() {
-  if (catch_error()) {
-    printf_P(PSTR("Error in execution.\n"));
-  }
+  catch_error();
+  execute_word(find_word("prompt"));
   while(tty_peek() != EOF) {
     lex_token();
   }
