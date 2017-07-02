@@ -113,6 +113,7 @@ void c_append(const char * fmt, ...) {
 void c_beginfn(Word* word) {
   if (!compiling || !cimpl) return;
   CHECK_MALLOC(compiling->name, C_IMPL_BUFSIZE, "buffer for C source code");
+  ((char*)compiling->name)[0] = '\0';
   c_append("\nvoid word_anon_%p() {\n", word);
 }
 
