@@ -12,6 +12,7 @@ void setup() {
 
 #ifdef SERIAL_REPL
   tty_init();
+  printf_P(PSTR("Startup complete.\n"));
 #endif
 }
 

@@ -9,6 +9,7 @@
 
 void repl() {
   catch_error();
+  printf_P(PSTR("Entering REPL."));
   execute_word(find_word("prompt"));
   while(tty_peek() != EOF) {
     lex_token();
