@@ -25,6 +25,5 @@ for nf in builtins/*.nf; do
   echo "Rebuilding: $nf"
   (cd builtins; ../nf-bootstrap ../$nf)
   (echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
-  (echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
   make --always-make --silent nf-bootstrap
 done

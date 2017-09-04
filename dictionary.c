@@ -19,9 +19,6 @@ Word* next_word(Word* word) {
     // Note that if the old Word was also in wordbuf, we overwrite it here,
     // invalidating anything in *word.
     memcpy_P(&wordbuf, next, sizeof(Word));
-    if (wordbuf.next && wordbuf.flags & SELF_IN_FLASH) {
-      wordbuf.next = next + (size_t)wordbuf.next;
-    }
     next = &wordbuf;
   }
   return next;

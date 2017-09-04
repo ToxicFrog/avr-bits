@@ -1,12 +1,8 @@
-## Syntax and semantics
+## C implementation of the @ (address-of-word) operator
 
-Numbers are accepted in both decimal and hex (0x) formats, positive and negative.
+In nf, this reads the following token, calls find_word on it, throws if the find_word fails, and pushes the address of the Word otherwise. If the word has SELF_IN_FLASH set, it first calls register_word() to create a copy of the Word in RAM, then pushes the address of that instead. This works fine since only the first @ of a given word will find the copy in ROM; subsequent ones will find the new definition in RAM.
 
-String literals are "foo bar"; :foo is also permitted if the string contains no whitespace. String literals evaluate to the address of the allocated string. This memory WILL NOT BE FREED AUTOMATICALLY. Unless passed to a function that frees it or takes ownership of it, it must be freed by the user.
-
-(TODO: functions)
-
-Everything else is a word. Words are executed immediately when read; if prefixed with &, the address of the word is put on the stack instead.
+In C we have a problem. We get (in c_compile_addressof) the Word definition, so we
 
 ## writing C definitions for nf words
 
@@ -29,50 +25,28 @@ and in C should be:
 as long as we call this *after* we've finalized and popped the current function source code,
 we should be good.
 
-## new input code
-
-execute.c gets most of stacks.c and possibly some other things besides like execute_wordlist()
-compile.c gets the new lexing/parsing code
-basic operation is compile(string) which reads input and pushes opcodes onto the stack, then malloc()s room for them and moves them off the stack into the new buffer
-we shouldn't need to change the code for { and }, although we can probably factor some bits out into a common function
-So :double { 2 * } defn turns into:
-
-PUSHLITERAL "double"
-[create new word and add it to the compilation chain]
-PUSHLITERAL 2
-&*
-[pop last three cells, store in word, push word, link word into dict]
-&defn
-
-Since { and } are immediate, that leaves the stack as:
-PUSHLITERAL "double" <address of anonymous word> &defn
-reaching EOF, compile() then pops this into a wordlist -- either malloc'd or a static buffer, although in the latter case we can probably write to the buffer directly rather than using the stack -- and then the caller can execute_wordlist() it and then free it.
-
-When compile() runs out of input, or when it runs out of space to compile to, it returns. This presumably means it needs a way to communicate to the caller how far it got -- or it needs to use a stateful input source.
-
-Say, something like:
-WordList compile(char (*next)(void*), void* data)
-and it repeatedly calls next(data) to get the next character, with the expectation that it will return EOF on eof
-so for file input this is just fgetc and the FILE*
-for serial input it's a wrapper around ReadByte that returns EOF on \n
-for tty input it's a wrapper around getchar() that behaves similarly
 
 ## Compiling C functions
 
 :foo.nf c/file
 
-Opens foo.nf.dict and foo.nf.impl
+Opens foo.nf.impl
 
-:foo { "bar();" "baz();" } c/def
+:foo 'bar(); baz();' c/defn
 
-Defines foo as an error word and writes the real implementation to foo.nf.impl; recompile notforth to get it
-
-TODO: if the function is already defined, write the implementation but do not register the word in the dictionary.
+Defines foo as an error word and writes the real implementation to foo.nf.impl; recompile notforth to get it.
 
 0 c/file
 
 Closes the .impl and .dict. Run `make` to incorporate the new words.
 
+In the .impl, functions are compiled thus:
+- C functions are compiled to word_<name>_defn and the symbol table entry to word_<name>_name and word_<name>_defn
+- Notforth functions are compiled to word_anon_<address>, and then the call to defn adds a #define mapping that to word_<name>_impl before writing the _name and _defn symbols.
+
+Functions are chained together in the linked list using the LAST_DEFINED_WORD #define, which is re-#defined after each one.
+
+Proposed approach for the @ prefix in C: create all C word defns as word_<name>_defn_rom, then #define to word_<name>_defn. When using @, check if word_<name>_defn has WORD_IN_FLASH set. If so, #undef word_<name>_defn and write out a new word_<name>_defn for storage in RAM. Then, push word_<name>_defn.
 
 Compiling notforth to C
 

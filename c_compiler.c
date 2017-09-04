@@ -43,7 +43,6 @@ const char * mangle(const char * name) {
 // extern declaration of dictionary fragment
 // redefinition of LAST_DICT and LAST_DICT_LEN macros
 FILE * cimpl = NULL;
-FILE * cdict = NULL;
 char cname[STACKBYTES];
 
 void word_cfile() {
@@ -54,17 +53,14 @@ void word_cfile() {
       name);
     sprintf(cname, "%s.impl", name);
     cimpl = fopen(cname, "w");
-    sprintf(cname, "%s.dict", name);
-    cdict = fopen(cname, "w");
 
     strcpy(cname, mangle(name));
 
-    fprintf(cdict, "// Words from %s\n\n", name);
+    fprintf(cimpl, "\n//// Definitions from %s ////\n\n", name);
     free(name);
   } else {
     // Finalize everything.
     CHECK(cimpl, "Attempt to close a c/file without one open.");
-    fclose(cdict); cdict = NULL;
     fclose(cimpl); cimpl = NULL;
   }
 }
@@ -79,19 +75,13 @@ void word_cdefn() {
   const char* mangled_name = mangle(name);
 
   // Write the implementation
-  fprintf(cimpl, "\nconst PROGMEM char word_%s_name[] = \"%s\";\n",
-    mangled_name, name);
-  fprintf(cimpl, "void word_%s_impl() {\n%s\n}\n", mangled_name, body);
+  fprintf(cimpl, "void word_%s_impl() { %s }\n", mangled_name, body);
   free(body);
-
-  // Write the dictionary entry.
-  fprintf(cdict, "  { (Word*)1, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH },\n",
-    mangled_name, mangled_name);
 
   // Store a no-op version in the dictionary. We can't call it without recompiling,
   // but this lets us compile references to it, so functions later in a file can
   // refer to functions defined earlier in it.
-  register_word(name, NULL, IS_BYTECODE);
+  c_register_word(register_word(name, NULL, IS_BYTECODE));
 }
 
 // Functions for compiling words written in notforth into C.
@@ -128,18 +118,23 @@ void c_endfn(Word* word) {
 void c_register_word(Word* word) {
   if (!cimpl) return;
   const char* mangled_name = mangle(word->name);
-  fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
-    mangled_name, word);
-  fprintf(cimpl, "const PROGMEM char word_%s_name[] = \"%s\";\n",
+  if (word->execute) {
+    fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
+      mangled_name, word);
+  }
+  fprintf(cimpl, "static const PROGMEM char word_%s_name[] = \"%s\";\n",
     mangled_name, word->name);
   // We force the IS_BYTECODE flag off here because once this definition gets
   // loaded at compile time, it isn't bytecode -- but this is probably getting
   // called from `defn`, which means the function *in memory* is implemented as
   // bytecode and that flag will be set.
-  fprintf(cdict,
-    "  { (Word*)1, word_%s_impl, word_%s_name, "
-    "(SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d) & ~IS_BYTECODE },\n",
-    mangled_name, mangled_name, word->flags);
+  fprintf(cimpl,
+    "static const PROGMEM Word word_%s_def = {"
+    " (Word*)&LAST_DEFINED_WORD, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d"
+    " };\n"
+    "#undef LAST_DEFINED_WORD\n"
+    "#define LAST_DEFINED_WORD word_%s_def\n\n",
+    mangled_name, mangled_name, mangled_name, (word->flags & ~IS_BYTECODE), mangled_name);
 }
 
 void c_pushstring(const char* str) {

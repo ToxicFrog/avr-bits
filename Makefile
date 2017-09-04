@@ -16,10 +16,9 @@ run: notforth
 
 clean:
 	> builtins/all.c
-	> builtins/all.h
-	rm -f notforth nf-bootstrap builtins/*.nf.impl builtins/*.nf.dict
+	rm -f notforth nf-bootstrap builtins/*.nf.impl
 
-notforth: ${SRCS} ${HDRS} builtins/all.c builtins/all.h
+notforth: ${SRCS} ${HDRS} builtins/all.c
 	${CC} -DLINUX -o notforth ${SRCS}
 
 
@@ -37,7 +36,7 @@ builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
 # into the build, but it does not *require* them, and including that dependency
 # explictly would make the build graph cyclical.
 nf-bootstrap: ${SRCS} ${HDRS}
-	touch builtins/all.h builtins/all.c
+	touch builtins/all.c
 	${CC} -DLINUX -o nf-bootstrap ${SRCS}
 
 .SUFFIXES:

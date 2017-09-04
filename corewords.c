@@ -6,10 +6,8 @@
 #include "tty.h"
 #include "execute.h"
 #include "compiler.h"
-
-#define ENABLE_BUILTINS
-#include "builtins/all.c"
-#undef ENABLE_BUILTINS
+#include "error.h"
+#include "lexer.h"
 
 //// Control words ////
 
@@ -75,32 +73,44 @@ void word_list() {
 // Used to display the prompt in the REPL.
 // Defined here so that it can be overridden by notforth.c in file execution mode,
 // before any input is processed.
-void word_prompt() {
+void word_prompt_impl() {
   printf_P(PSTR("%s%lu%s "),
     compiling ? "<" : "\n[",
     (long unsigned int)STACKP,
     compiling ? ">  " : "]");
 }
 
-const PROGMEM Word CORE_WORDS[] = {
-  { (Word*)1, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE },
-  { (Word*)1, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-  { (Word*)1, word_prompt, "prompt", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE},
-
-  #define ENABLE_BUILTINS
-  #include "builtins/all.h"
-  #undef ENABLE_BUILTINS
-
-#ifdef LINUX
-  { (Word*)1, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH },
-  { (Word*)1, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH },
-#endif
-
-  { NULL, word_list, "list", SELF_IN_FLASH },
+static const PROGMEM Word word_list_def = {
+  NULL, word_list, "list", SELF_IN_FLASH
+};
+static const PROGMEM Word word_beginfn_def = {
+  (Word*)&word_list_def, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
+};
+static const PROGMEM Word word_endfn_def = {
+  (Word*)&word_beginfn_def, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
+};
+static const PROGMEM Word word_prompt_def = {
+  (Word*)&word_endfn_def, word_prompt_impl, "prompt", NEXT_IN_FLASH | SELF_IN_FLASH
 };
 
+#ifdef LINUX
+  static const PROGMEM Word word_cfile_def = {
+    (Word*)&word_prompt_def, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH
+  };
+  static const PROGMEM Word word_cdefn_def = {
+    (Word*)&word_cfile_def, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH
+  };
+  #define LAST_DEFINED_WORD word_cdefn_def
+#else
+  #define LAST_DEFINED_WORD word_prompt_def
+#endif
+
+#define ENABLE_BUILTINS
+#include "builtins/all.c"
+#undef ENABLE_BUILTINS
+
 void load_core_words() {
-  DICTIONARY = (Word*)CORE_WORDS;  // cast to remove the const
+  DICTIONARY = (Word*)&LAST_DEFINED_WORD;  // cast to remove the const
   // We place `words` outside flash both because we need at least one dictionary
   // entry in RAM to contain the first NEXT_IN_FLASH, and because it's useful to
   // have available ~always for troubleshooting issues with flash dictionary traversal.
