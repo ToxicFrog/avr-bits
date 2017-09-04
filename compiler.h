@@ -3,9 +3,9 @@
 #include "dictionary.h"
 #include "execute.h"
 
-#define OP_EOF ((WordImpl)0x0000)
-#define OP_PUSHLITERAL ((WordImpl)0x0001)
-#define OP_CALLWORD ((WordImpl)0x0002)
+#define OP_EOF ((WordImpl)0)
+#define OP_PUSHLITERAL ((WordImpl)-1)
+#define OP_CALLWORD ((WordImpl)-2)
 
 extern Word* compiling;
 
