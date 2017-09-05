@@ -6,7 +6,7 @@ CC=gcc -std=c99 -Wall -Werror -g -O0 -fno-optimize-sibling-calls
 all: notforth
 
 test: notforth
-	./notforth < TEST
+	./notforth TEST
 
 debug: notforth
 	gdb -ex run notforth
