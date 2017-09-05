@@ -80,29 +80,29 @@ void word_prompt_impl() {
     compiling ? ">  " : "]");
 }
 
-static const PROGMEM Word word_list_def = {
+static const PROGMEM Word word_list_defn = {
   NULL, word_list, "list", SELF_IN_FLASH
 };
-static const PROGMEM Word word_beginfn_def = {
-  (Word*)&word_list_def, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
+static const PROGMEM Word word_beginfn_defn = {
+  (Word*)&word_list_defn, word_beginfn, "{", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
 };
-static const PROGMEM Word word_endfn_def = {
-  (Word*)&word_beginfn_def, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
+static const PROGMEM Word word_endfn_defn = {
+  (Word*)&word_beginfn_defn, word_endfn, "}", NEXT_IN_FLASH | SELF_IN_FLASH | IS_IMMEDIATE
 };
-static const PROGMEM Word word_prompt_def = {
-  (Word*)&word_endfn_def, word_prompt_impl, "prompt", NEXT_IN_FLASH | SELF_IN_FLASH
+static const PROGMEM Word word_prompt_defn = {
+  (Word*)&word_endfn_defn, word_prompt_impl, "prompt", NEXT_IN_FLASH | SELF_IN_FLASH
 };
 
 #ifdef LINUX
-  static const PROGMEM Word word_cfile_def = {
-    (Word*)&word_prompt_def, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH
+  static const PROGMEM Word word_cfile_defn = {
+    (Word*)&word_prompt_defn, word_cfile, "c/file", NEXT_IN_FLASH | SELF_IN_FLASH
   };
-  static const PROGMEM Word word_cdefn_def = {
-    (Word*)&word_cfile_def, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH
+  static const PROGMEM Word word_cdefn_defn = {
+    (Word*)&word_cfile_defn, word_cdefn, "c/defn", NEXT_IN_FLASH | SELF_IN_FLASH
   };
-  #define LAST_DEFINED_WORD word_cdefn_def
+  #define LAST_DEFINED_WORD word_cdefn_defn
 #else
-  #define LAST_DEFINED_WORD word_prompt_def
+  #define LAST_DEFINED_WORD word_prompt_defn
 #endif
 
 #define ENABLE_BUILTINS

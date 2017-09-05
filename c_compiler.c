@@ -129,11 +129,11 @@ void c_register_word(Word* word) {
   // called from `defn`, which means the function *in memory* is implemented as
   // bytecode and that flag will be set.
   fprintf(cimpl,
-    "static const PROGMEM Word word_%s_def = {"
+    "static const PROGMEM Word word_%s_defn = {"
     " (Word*)&LAST_DEFINED_WORD, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d"
     " };\n"
     "#undef LAST_DEFINED_WORD\n"
-    "#define LAST_DEFINED_WORD word_%s_def\n\n",
+    "#define LAST_DEFINED_WORD word_%s_defn\n\n",
     mangled_name, mangled_name, mangled_name, (word->flags & ~IS_BYTECODE), mangled_name);
 }
 
@@ -145,11 +145,17 @@ void c_pushnumber(Cell n) {
   c_append("  push(%d);\n", n);
 }
 
-// FIXME: this is wrong. It pushes the address of the word's implementation
-// function, not the address of the word's dictionary entry.
+// Like the native implementation, this implicitly creates and registers a copy
+// of the word.
 void c_pushword(Word* word) {
   if (word->name) {
-    c_append("  push((Cell)word_%s_impl);\n", mangle(word->name));
+    const char* mangled_name = mangle(word->name);
+    if (word->flags & SELF_IN_FLASH) {
+      c_append("  push((Cell)register_word(word_%s_impl, word_%s_name, %d));\n",
+        mangled_name, mangled_name, word->flags & ~(SELF_IN_FLASH|NEXT_IN_FLASH));
+    } else {
+      c_append("  push((Cell)&word_%s_defn);\n", mangle(word->name));
+    }
   } else {
     c_append("  push((Cell)word_anon_%p);\n", word);
   }
