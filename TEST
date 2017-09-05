@@ -1,0 +1,18 @@
+words
+:two 2 defconst
+:double { two * } defn
+:^2 { dup * } defn
+3 double ^2  # should be 36
+3 ^2 double  # should be 18
+u. u. # expect 18 36
+
+:double { 2 * } defn
+two u. # expect 2
+:d' { two } defn
+d' u. # expect 2
+words
+#bye
+
+#0 16 32 @u. @dup while
+
+#testloop
