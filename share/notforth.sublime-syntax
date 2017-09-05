@@ -24,7 +24,7 @@ contexts:
             1: punctuation.section.block.end
           pop: true
   comments:
-    - match: (?:^|\s)(#).*$\n?
+    - match: (?:^|\s)(;).*$\n?
       scope: comment.line.nf
       captures:
         1: punctuation.definition.comment.nf

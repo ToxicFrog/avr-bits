@@ -47,7 +47,7 @@ void lex_token() {
   for (ch = tty_peek(); isspace(ch) && ch != '\n'; ch = tty_peek()) tty_next();
   switch (ch) {
     // Line comment.
-    case '#':
+    case ';':
       lex_linecomment();
       break;
 

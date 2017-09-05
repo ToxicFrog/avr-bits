@@ -35,10 +35,10 @@
 (name size defvar -- )
 (As defconst, but allocates `size` bytes of memory, and defines `name` as a
   constant holding the address of that memory.)
-# TODO :defvar { alloc defconst } defn
+; TODO :defvar { alloc defconst } defn
 
-# TODO: words to clean up words? In particular, a way to free a word, and a way
-# to unlink a word from the dictionary.
+; TODO: words to clean up words? In particular, a way to free a word, and a way
+; to unlink a word from the dictionary.
 
 :exec 'execute_word((Word*)pop());' c/defn
 
