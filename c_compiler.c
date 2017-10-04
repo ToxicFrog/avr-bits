@@ -34,14 +34,11 @@ const char * mangle(const char * name) {
   return mangled_name;
 }
 
-// Each one has two parts, the impl and the header
-// the impl has the form:
-// #includes
-// list of function definitions
-// dictionary fragment definition
-// the header has the form:
-// extern declaration of dictionary fragment
-// redefinition of LAST_DICT and LAST_DICT_LEN macros
+// cimpl is the C implementation file we're currently writing.
+// It contains all the C code needed to implement the (C or notforth) functions
+// being defined.
+// It is conventionally named <filename>.impl -- not .c because then the Arduino
+// IDE will autodetect it and things will go wrong.
 FILE * cimpl = NULL;
 char cname[STACKBYTES];
 
@@ -49,7 +46,7 @@ void word_cfile() {
   char* name = (char*)pop();
   if (name) {
     CHECK(!cimpl,
-      "Attempt to open %s.{dict,impl} when there's already a c/file open.",
+      "Attempt to open %s.impl when there's already a c/file open.",
       name);
     sprintf(cname, "%s.impl", name);
     cimpl = fopen(cname, "w");
@@ -107,6 +104,14 @@ void c_beginfn(Word* word) {
   c_append("\nvoid word_anon_%p() {\n", word);
 }
 
+// End a function definition.
+// In interpreter mode, the function is allocated an anonymous Word structure
+// and that is pushed onto the stack.
+// In compiler mode, no Word is allocated; the function body is written out and
+// no other processing is done. The assumption is that the common case here is
+// a subsequent call to `defn` that will allocate the Word and link it into the
+// dictionary. In cases where the anonymous function needs to be pushed, it's
+// up to the pusher (probably c_pushword) to create the Word ex nihilo.
 void c_endfn(Word* word) {
   if (!compiling || !cimpl) return;
   c_append("}\n");
@@ -145,19 +150,50 @@ void c_pushnumber(Cell n) {
   c_append("  push(%d);\n", n);
 }
 
-// Like the native implementation, this implicitly creates and registers a copy
-// of the word.
+// This is called by compile_addressof, which is given a Word and emits code to
+// push it onto the stack. If the world is in ROM, it first calls register_word
+// to copy it to RAM and pushes that. This happens before calling c_pushword.
+// compile_addressof is called under two circumstances:
+// - when compiling the @ prefix operator, and
+// - when compiling a { function literal } to push the resulting anonymous function
 void c_pushword(Word* word) {
+  // We assume that the word was compiled into ROM, since we're in compilation
+  // mode. Note that if the function being pushed was defined (using `defn`) in
+  // the same compilation unit, word->flags will claim it's in RAM, but once it
+  // gets compiled in, this stops being the case.
+  // For this reason, we don't trust the value of word->flags and just unconditionally
+  // assume that by the time this generated code is being called, the word is in
+  // ROM.
+
   if (word->name) {
+    // Named word. The first time we're called, we allocate a buffer for a RAM
+    // copy of the _defn and copy the definition from ROM. This slows down the
+    // first call, but means the only memory impact is sizeof(Word*) unless the
+    // function is actually called.
+    // TODO: some sort of deduplication so that if multiple functions need a copy
+    // in RAM of the same function, only one is allocated.
     const char* mangled_name = mangle(word->name);
-    if (word->flags & SELF_IN_FLASH) {
-      c_append("  push((Cell)register_word(word_%s_impl, word_%s_name, %d));\n",
-        mangled_name, mangled_name, word->flags & ~(SELF_IN_FLASH|NEXT_IN_FLASH));
-    } else {
-      c_append("  push((Cell)&word_%s_defn);\n", mangle(word->name));
-    }
+    c_append(
+      "  static Word* word_%s_tmp = NULL;\n"
+      "  if (!word_%s_tmp) {\n"
+      "    word_%s_tmp = malloc(sizeof(Word));\n"
+      "    memcpy_P(word_%s_tmp, &word_%s_defn, sizeof(Word));\n"
+      "  }\n"
+      "  push((Cell)word_%s_tmp);\n",
+      mangled_name, mangled_name, mangled_name, mangled_name, mangled_name, mangled_name);
+
   } else {
-    c_append("  push((Cell)word_anon_%p);\n", word);
+    // Anonymous word. This is called at the end of every {...} block, but if
+    // it is a top-level block, `compiling` will be NULL and c_append is a no-op.
+    // Inside a function, we need to create and push an anonymous Word for it.
+    c_append(
+      "  static Word* word_%p_tmp = NULL;\n"
+      "  if (!word_%p_tmp) {\n"
+      "    word_%p_tmp = calloc(1, sizeof(Word));\n"
+      "    word_%p_tmp->execute = (WordImpl)word_anon_%p;\n"
+      "  }\n"
+      "  push((Cell)word_%p_tmp);\n",
+      word, word, word, word, word, word);
   }
 }
 
