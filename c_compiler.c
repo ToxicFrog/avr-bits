@@ -157,6 +157,10 @@ void c_pushnumber(Cell n) {
 // - when compiling the @ prefix operator, and
 // - when compiling a { function literal } to push the resulting anonymous function
 void c_pushword(Word* word) {
+  // c_append is a no-op outside of compilation state, but we also need to emit
+  // some code directly here, so abort early.
+  if (!compiling || !cimpl) return;
+
   // We assume that the word was compiled into ROM, since we're in compilation
   // mode. Note that if the function being pushed was defined (using `defn`) in
   // the same compilation unit, word->flags will claim it's in RAM, but once it
@@ -173,8 +177,13 @@ void c_pushword(Word* word) {
     // TODO: some sort of deduplication so that if multiple functions need a copy
     // in RAM of the same function, only one is allocated.
     const char* mangled_name = mangle(word->name);
+    fprintf(cimpl,
+      "#ifndef WORD_%s_TMP_DEFINED\n"
+      "#define WORD_%s_TMP_DEFINED\n"
+      "Word* word_%s_tmp = NULL;\n"
+      "#endif\n",
+      mangled_name, mangled_name, mangled_name);
     c_append(
-      "  static Word* word_%s_tmp = NULL;\n"
       "  if (!word_%s_tmp) {\n"
       "    word_%s_tmp = malloc(sizeof(Word));\n"
       "    memcpy_P(word_%s_tmp, &word_%s_defn, sizeof(Word));\n"
@@ -186,14 +195,19 @@ void c_pushword(Word* word) {
     // Anonymous word. This is called at the end of every {...} block, but if
     // it is a top-level block, `compiling` will be NULL and c_append is a no-op.
     // Inside a function, we need to create and push an anonymous Word for it.
+    fprintf(cimpl,
+      "#ifndef WORD_%p_TMP_DEFINED\n"
+      "#define WORD_%p_TMP_DEFINED\n"
+      "Word* word_%p_tmp = NULL;\n"
+      "#endif\n",
+      word, word, word);
     c_append(
-      "  static Word* word_%p_tmp = NULL;\n"
       "  if (!word_%p_tmp) {\n"
       "    word_%p_tmp = calloc(1, sizeof(Word));\n"
       "    word_%p_tmp->execute = (WordImpl)word_anon_%p;\n"
       "  }\n"
       "  push((Cell)word_%p_tmp);\n",
-      word, word, word, word, word, word);
+      word, word, word, word, word);
   }
 }
 
