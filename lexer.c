@@ -178,7 +178,7 @@ void lex_word() {
   char* name = readuntil(isspace);
   Word* word = find_word(name);
   if (!word) {
-    error("Can't call undefined word '%s'", name);
+    error("Can't compile call to undefined word '%s'", name);
     return;
   }
   compile_word(word);

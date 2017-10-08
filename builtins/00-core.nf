@@ -100,6 +100,9 @@ each execution; begins with start, and counts up/down by 1 each iteration.)
   }
 ' c/defn
 
+:tty/ateof 'push(tty_peek() == EOF);' c/defn
+:lex-token 'lex_token();' c/defn
+
 ( fn err pcall -- * )
 (Call `fn`. If `fn` throws an error, pushes the error code on the stack and
 calls `err`.)

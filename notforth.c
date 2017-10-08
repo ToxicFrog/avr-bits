@@ -12,7 +12,6 @@
 #include <stdlib.h>
 
 #include "dictionary.h"
-#include "repl.h"
 #include "corewords.h"
 #include "lexer.h"
 #include "execute.h"
@@ -47,7 +46,7 @@ int main(int argc, char ** argv) {
     return 0;
   }
 
-  repl();
+  execute_word(find_word("repl"));
   return 0;
 }
 
