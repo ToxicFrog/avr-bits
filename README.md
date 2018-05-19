@@ -37,7 +37,7 @@ Doing this before building the linux version will work, but the generated image 
 
 *Linux*: just run `./notforth` to get a REPL, or `./notforth <list of files>` to load and run each file in turn.
 
-*Arduino*: upload the image with `ctrl-U` (or export the ihex and use `avrdude`), then reset the board and connect to it over the serial console at 9600 8n1. (There's currently no way to define a `main()` for notforth; this is planned.)
+*Arduino*: upload the image with `ctrl-U` (or export the ihex and use `avrdude`), then reset the board and connect to it over the serial console at 9600 8n1. The defined `main` function will run when the AVR starts up (the default one is defined in `builtins/repl.nf`).
 
 ## The language
 
@@ -56,7 +56,7 @@ It is also important to remember that there is no garbage collection or concept 
 
 ### Comments
 
-Comments start with `#` (and run to the end of the line) or `(` (and run to the matching `)`. The latter form can be nested.
+Comments start with `;` (and run to the end of the line) or `(` (and run to the matching `)`. The latter form can be nested.
 
 ### Numbers
 
@@ -72,7 +72,7 @@ When read, the string is temporarily buffered on the stack, then copied into a f
 
 By prefixing the name of a function with `@`, you can push the address of the function onto the stack rather than calling it. You can then call it later with `exec`, or do things like pass it to another function or to a flow-control construct like `if` or `while`.
 
-*Warning*: `@` is currently not safe to use on words stored in flash (i.e. builtins). It will appear to work, but do the wrong thing. Don't go there. TODO: when using `@` on a word with `SELF_IN_FLASH` set, create a copy of the word definition at the head of the dictionary with `SELF_IN_FLASH` unset but all other fields intact, then push the address of that copy.
+When using `@` on a function stored in flash, a copy is created in RAM that takes precedence, and the address of the copy is returned.
 
 ### Function definitions
 
@@ -95,7 +95,7 @@ These macros begin and end a function definition. See *Function Definitions* abo
 
 These are used to generate code for functions and macros implemented in C but defined in notforth; `builtins/` contains a number of examples.
 
-### `words `
+### `words`
 
 `words --`
 
@@ -113,7 +113,6 @@ Pops a function pointer from the stack and prints to the terminal the decompiled
 
  * Basic register/IO library
  * Example program on the arduino
- * Rewrite REPL in notforth; ability to compile in a `main` function
  * String/function interning; this will make compilation slower, but at runtime, who cares?
  * Support for negative numbers
  * Autogenerate documentation
