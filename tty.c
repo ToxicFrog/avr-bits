@@ -46,6 +46,13 @@ int tty_fgetc(FILE* tty) {
 
 #include <util/setbaud.h>
 
+/* old serial setup code
+  UCSR0A=0x00;
+  UCSR0B=0x18;
+  UCSR0C=0x86;
+  UBRR0=0x0019;
+*/
+
 void tty_init() {
   // UBRR*_VALUE and USE_2X provided by setbaud.h
   UBRR0H = UBRRH_VALUE;

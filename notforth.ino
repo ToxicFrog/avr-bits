@@ -1,3 +1,6 @@
+// Code specific to the Arduino build.
+// See main.c for the hosted build and avr-main.c for non-Arduino AVR.
+
 #include "common.h"
 
 extern "C" {

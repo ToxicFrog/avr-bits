@@ -1,4 +1,5 @@
-// Notforth main file for HOST. See notforth.ino for TARGET.
+// Notforth main file for hosted execution.
+// See avr-main.c for AVR and notforth.ino for Arduino.
 
 #include "common.h"
 
@@ -50,4 +51,4 @@ int main(int argc, char ** argv) {
   return 0;
 }
 
-#endif
+#endif  // LINUX

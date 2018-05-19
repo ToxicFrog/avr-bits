@@ -1,3 +1,10 @@
+// Common header file that defines various constants and utility functions
+// differently depending on what system we're building for.
+// n.b. LINUX is defined if we're building for linux.
+// AVR is defined if we're building for any AVR platform.
+// ARDUINO is defined if we're building in the Arduino IDE.
+// AVR_NO_ARDUINO is defined if we're building for AVR, but not in the Arduino IDE.
+
 #pragma once
 
 #include "config.h"
@@ -17,10 +24,14 @@
   #define fputs_P fputs
 #endif
 
-#ifdef ARDUINO
+#ifdef AVR
   #include <avr/pgmspace.h>
 
   #define STACKSIZE AVR_STACKSIZE
+
+  #ifndef ARDUINO
+    #define AVR_NO_ARDUINO
+  #endif
 #endif
 
 #define STACKBYTES (STACKSIZE * sizeof(Cell))

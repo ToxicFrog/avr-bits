@@ -4,3 +4,6 @@ builtins/*.nf.impl
 builtins/*.nf.dict
 builtins/all.c
 builtins/all.h
+*.o
+*.elf
+*.hex
