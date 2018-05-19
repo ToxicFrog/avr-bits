@@ -1,41 +1,6 @@
-(IO words)
+"flow-control.nf" c/file
 
-"00-core.nf" c/file
-
-( bye -- )
-(On linux, exits the interpreter. On AVR, resets the board.)
-:bye '
-#ifdef LINUX
-  exit(0);
-#else
-  void (*reset)(void) = NULL;
-  reset();
-#endif
-' c/defn
-
-(Peek and poke operate on bytes, not machinewords. TODO: word-sized variants.)
-
-( addr ? -- *addr )
-:? "push(*(uint8_t*)pop());" c/defn
-
-( addr val ! -- )
-:! "uint8_t val = (uint8_t)pop(); *(uint8_t*)pop() = val;" c/defn
-
-(Stack functions.)
-
-( x dup -- x x )
-(Duplicates the top element of the stack.)
-:dup "push(peek());" c/defn
-
-( x y exch -- y x )
-(Swaps the top two stack elements.)
-:exch "Cell x = pop(); Cell y = pop(); push(x); push(y);" c/defn
-
-( x pop -- )
-(Drops the top element of the stack.)
-:pop "pop();" c/defn
-
-(Flow control.)
+(Built in flow control constructs.)
 
 ( ifcode cond if -- )
 (Executes ifcode iff cond is true.)
@@ -98,24 +63,6 @@ each execution; begins with start, and counts up/down by 1 each iteration.)
     push(start);
     execute_word(body);
   }
-' c/defn
-
-:tty/ateof 'push(tty_peek() == EOF);' c/defn
-:lex-token 'lex_token();' c/defn
-
-( fn err pcall -- * )
-(Call `fn`. If `fn` throws an error, pushes the error code on the stack and
-calls `err`.)
-:pcall '
-  Word* err = (Word*)pop();
-  Word* fn = (Word*)pop();
-  if (catch_error()) {
-    push(1);
-    execute_word(err);
-  } else {
-    execute_word(fn);
-  }
-  uncatch_error();
 ' c/defn
 
 0 c/file

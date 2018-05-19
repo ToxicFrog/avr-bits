@@ -17,13 +17,23 @@
 
 set -e
 
-for nf in builtins/*.nf; do
-  if [[ $nf -ot $nf.impl ]]; then
+FILES=( $(egrep -v '^#' builtins/LIST ) )
+
+for nf in ${FILES[@]}; do
+  if [[ builtins/$nf -ot builtins/$nf.impl ]]; then
     echo "Up to date: $nf"
     continue
   fi
   echo "Rebuilding: $nf"
-  (cd builtins; ../nf-bootstrap ../$nf)
-  (echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
+  (cd builtins; ../nf-bootstrap $nf)
+  {
+    echo "#ifdef ENABLE_BUILTINS"
+    for file in ${FILES[@]}; do
+      if [[ -f builtins/$file.impl ]]; then
+        cat builtins/$file.impl
+      fi
+    done
+    echo "#endif"
+  } > builtins/all.c
   make --always-make --silent nf-bootstrap
 done

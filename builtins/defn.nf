@@ -1,6 +1,6 @@
 (Words for defining words.)
 
-"00-defn.nf" c/file
+"defn.nf" c/file
 
 (name body defn -- )
 (Bind the name to the function body. The body can either be an inline function
@@ -16,9 +16,9 @@
 (As defn, but the function will be marked IMMEDIATE, meaning that it will be
   invoked as soon as it is lexed, rather than a call to it being compiled into
   bytecode. This allows it to arbitrarily alter the bytecode of the function
-  being compiled. Note that stuff typed into the REPL also counts as a function!
-  The function-start and function-end words `{` and `}` are implemented as
-  IMMEDIATE words.)
+  being compiled; the function code compiled so far is on the stack.
+  Note that REPL code is executed as soon as it's lexed, so calling macros
+  from the REPL outside a {} block will probably not do what you want.)
 :defmacro "
   ((Word*)peek())->flags |= IS_IMMEDIATE;
   word_defn_impl();
@@ -39,7 +39,5 @@
 
 ; TODO: words to clean up words? In particular, a way to free a word, and a way
 ; to unlink a word from the dictionary.
-
-:exec 'execute_word((Word*)pop());' c/defn
 
 0 c/file

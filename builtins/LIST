@@ -1,0 +1,12 @@
+# This is the list of all builtin libraries to be linked into notforth.
+# They will be built and linked in the order specified.
+# Individual ones can be commented out for a smaller build.
+
+defn.nf
+flow-control.nf
+stack.nf
+execute.nf
+io.nf
+memory.nf
+math.nf
+repl.nf

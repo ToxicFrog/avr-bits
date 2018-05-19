@@ -1,6 +1,8 @@
 (Functions for math and bitwise operations.)
 
-"00-math.nf" c/file
+"math.nf" c/file
+
+:nil 0 defconst
 
 (Arithmetic operators. Non-commutative operators - / % expect the second operand
 on top of the stack, so `10 2 /` => 5.)

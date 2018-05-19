@@ -12,18 +12,6 @@
 (f negate -- f')
 ;:negate { { `1 not } } defn
 
-(WIP: REPL functions.)
-
-; test
-:repl/run {
-  pop  ; there will be an error code on the stack (or 0 on first run)
-  prompt
-  ; lex-token will call prompt automatically at EOL.
-  @lex-token @tty/ateof until
-} defn
-
-:repl { 0 @repl/run @repl/run pcall } defn
-
 :testloop {
   0 16 32 { dup u. . } @dup while
 } defn
