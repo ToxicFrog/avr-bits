@@ -28,9 +28,9 @@ calls `err`.)
   uncatch_error();
 ' c/defn
 
-( fn exec -- * )
+( fn call -- * )
 (Call the function on top of the stack. If it's not a function, interprets it
 as one and then bad things happen.)
-:exec 'execute_word((Word*)pop());' c/defn
+:call 'execute_word((Word*)pop());' c/defn
 
 0 c/file

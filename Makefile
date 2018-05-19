@@ -22,14 +22,10 @@ notforth: ${SRCS} ${HDRS} builtins/all.c
 	${CC} -DLINUX -o notforth ${SRCS}
 
 
-# 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.impl; echo "#endif") > builtins/all.c
-
-# 	(echo "#ifdef ENABLE_BUILTINS"; cat builtins/*.nf.dict; echo "#endif") > builtins/all.h
-
 # builtins/all.c: $(WORDS:%.nf=%.nf.impl)
 # builtins/all.h: $(WORDS:%.nf=%.nf.dict)
 #builtins/%.nf.dict builtins/%.nf.impl: builtins/%.nf nf-bootstrap builtins.sh
-builtins/all.h builtins/all.c: nf-bootstrap builtins.sh ${WORDS}
+builtins/all.c: nf-bootstrap builtins.sh builtins/LIST ${WORDS}
 	bash builtins.sh
 
 # This secretly depends on builtins/all.{h,c}, in that it incorporates them

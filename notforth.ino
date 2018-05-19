@@ -2,7 +2,7 @@
 
 extern "C" {
   #include "dictionary.h"
-  #include "repl.h"
+  #include "execute.h"
   #include "corewords.h"
   #include "tty.h"
 }
@@ -12,12 +12,12 @@ void setup() {
 
 #ifdef SERIAL_REPL
   tty_init();
-  printf_P(PSTR("Startup complete.\n"));
+  printf_P(PSTR("Ready.\n"));
 #endif
 }
 
 void loop() {
 #ifdef SERIAL_REPL
-  repl();
+  execute_word(find_word("main"));
 #endif
 }

@@ -14,4 +14,6 @@
 (Drops the top element of the stack.)
 :pop "pop();" c/defn
 
+(TODO: support nth, insert, delete, drop-n, dup-n, count)
+
 0 c/file

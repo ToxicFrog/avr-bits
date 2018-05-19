@@ -151,7 +151,7 @@ void c_pushnumber(Cell n) {
 }
 
 // This is called by compile_addressof, which is given a Word and emits code to
-// push it onto the stack. If the world is in ROM, it first calls register_word
+// push it onto the stack. If the word is in ROM, it first calls register_word
 // to copy it to RAM and pushes that. This happens before calling c_pushword.
 // compile_addressof is called under two circumstances:
 // - when compiling the @ prefix operator, and
