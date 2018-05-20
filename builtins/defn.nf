@@ -27,6 +27,11 @@
 (name val defconst -- )
 (As defn, but `val` need not be a function, and when `name` is invoked, it will
   be pushed onto the stack.)
+(TODO: add a `defval` variant that's mutable.
+  This will probably require a new dictionary flag, since right now when the
+  compiler encounters a constant it emits the actual value into the bytecode
+  along with a PUSHLITERAL instruction. This won't work with vars because the
+  value may have changed by the time the function gets called...)
 :defconst '
   WordImpl val = (WordImpl)pop();
   register_word((const char*)pop(), val, IS_CONSTANT);

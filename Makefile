@@ -11,7 +11,7 @@ AVR_LDFLAGS=-Os -w -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p
 ## File sets
 SRCS=$(wildcard src/*.c)
 HDRS=$(wildcard include/*.h)
-OBJS=$(SRCS:%.c=build/%.o)
+OBJS=$(SRCS:src/%.c=build/%.o)
 WORDS=$(wildcard builtins/*.nf)
 
 ## Top-level targets
