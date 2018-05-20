@@ -18,7 +18,17 @@ bytecode pushed onto the stack.)
   @repl/lex-token @repl/ateof until
 } defn
 
+:PINB 0x23 defconst
+:DDRB 0x24 defconst
+:PORTB 0x25 defconst
+
+:led-init { DDRB dup ? 5 bit-on ! } defn
+:led-on { PORTB dup ? 5 bit-on ! } defn
+:led-off { PORTB dup ? 5 bit-off ! } defn
+
 :main {
+  led-init
+  led-on
   0
   @repl/run @repl/run pcall
 } defn

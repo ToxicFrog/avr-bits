@@ -19,8 +19,6 @@ void main() {
   tty_init();
   printf_P(PSTR("Ready.\n"));
 #endif
-  DDRB |= 1<<5;
-  PORTB |= 1<<5;
 
   execute_word(find_word("main"));
 }
