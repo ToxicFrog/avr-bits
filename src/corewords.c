@@ -106,7 +106,7 @@ static const PROGMEM Word word_prompt_defn = {
 #endif
 
 #define ENABLE_BUILTINS
-#include "builtins/all.c"
+#include "../builtins/all.c"
 #undef ENABLE_BUILTINS
 
 void load_core_words() {
