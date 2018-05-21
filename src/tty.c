@@ -83,6 +83,9 @@ int tty_fgetc(FILE* tty) {
   loop_until_bit_is_set(UCSR0A, RXC0);
   // Echo back to the typist
   int ch = UDR0;
+  if (ch == '\r')
+    // Compensate for weird serial clients like screen that send \r
+    ch = '\n';
   tty_fputc(ch, tty);
   return ch;
 }
