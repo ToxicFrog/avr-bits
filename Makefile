@@ -56,6 +56,9 @@ build/notforth.hex: ${OBJS}
 	avr-strip build/notforth.elf
 	avr-objcopy -O ihex -R .eeprom build/notforth.elf build/notforth.hex
 
+build/corewords.o: src/corewords.c builtins/all.c
+	avr-gcc ${AVR_CCFLAGS} -c -o $@ $<
+
 build/%.o: src/%.c
 	avr-gcc ${AVR_CCFLAGS} -c -o $@ $<
 
