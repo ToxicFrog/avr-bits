@@ -32,7 +32,7 @@ upload: build/notforth.hex
 
 clean:
 	> builtins/all.c
-	rm -f notforth nf-bootstrap builtins/*.nf.impl build/*
+	rm -f notforth nf-bootstrap build/*
 
 ## Hosted version
 # Builds the whole thing in one shot without leaving any intermediate files around.

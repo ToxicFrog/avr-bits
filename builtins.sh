@@ -21,18 +21,18 @@ FILES=( $(egrep -v '^#' builtins/LIST ) )
 DIRTY=0
 
 for nf in ${FILES[@]}; do
-  if [[ builtins/$nf -ot builtins/$nf.impl ]] && ! (( DIRTY )); then
+  if [[ builtins/$nf -ot build/$nf.impl ]] && ! (( DIRTY )); then
     echo "Up to date: $nf"
     continue
   fi
   DIRTY=1
   echo "Rebuilding: $nf"
-  (cd builtins; ../nf-bootstrap $nf)
+  (cd build; ../nf-bootstrap ../builtins/$nf)
   {
     echo "#ifdef ENABLE_BUILTINS"
     for file in ${FILES[@]}; do
-      if [[ -f builtins/$file.impl ]]; then
-        cat builtins/$file.impl
+      if [[ -f build/$file.impl ]]; then
+        cat build/$file.impl
       fi
     done
     echo "#endif"
