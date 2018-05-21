@@ -8,7 +8,7 @@
 
 ( x dup -- x x )
 (Duplicates the top element of the stack.)
-:dup { 1 nth } defn
+:dup { 0 nth } defn
 
 ( <...> n dupn -- <...> <...> )
 (Duplicates the top n stack elements in order.)
