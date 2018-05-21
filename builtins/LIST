@@ -11,4 +11,6 @@ memory.nf
 math.nf
 atmega328p-registers.nf
 avr-pins.nf
+# pick one of the below
 repl.nf
+#demo.nf
