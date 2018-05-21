@@ -9,4 +9,5 @@ execute.nf
 io.nf
 memory.nf
 math.nf
+atmega328p-registers.nf
 repl.nf
