@@ -20,12 +20,12 @@
 
 void silent_prompt() {}
 
-void run_file(const char* file) {
+int run_file(const char* file) {
   stdin = fopen(file, "r");
   if (catch_error()) {
     printf("Error executing file '%s'\n", file);
     fclose(stdin);
-    return;
+    return 0;
   }
 
   while (!feof(stdin)) {
@@ -33,6 +33,7 @@ void run_file(const char* file) {
   }
   fclose(stdin);
   uncatch_error();
+  return 1;
 }
 
 int main(int argc, char ** argv) {
@@ -42,7 +43,8 @@ int main(int argc, char ** argv) {
     register_word("prompt", silent_prompt, 0);
     fclose(stdin);
     for (int i = 1; i < argc; ++i) {
-      run_file(argv[i]);
+      if (!run_file(argv[i]))
+        return 1;
     }
     return 0;
   }
