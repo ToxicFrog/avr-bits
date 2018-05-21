@@ -1,43 +1,47 @@
-# SYNTAX TEST "notforth.sublime-syntax"
+; SYNTAX TEST "notforth.sublime-syntax"
 
   (commment)
-# ^ punctuation.definition.comment
-#  ^ comment.block
-#          ^ punctuation.definition.comment
+; ^ punctuation.definition.comment
+;  ^ comment.block
+;          ^ punctuation.definition.comment
 
-# single-line comment
-# <- punctuation.definition.comment
-# ^ comment.line
+; single-line comment
+; <- punctuation.definition.comment
+; ^ comment.line
 
 0xff
-# <- constant.numeric.hex
+; <- constant.numeric.hex
 
-255 # end of line comment
-# <- constant.numeric
-#   ^ punctuation.definition.comment
-#     ^ comment.line
+255 ; end of line comment
+; <- constant.numeric
+;   ^ punctuation.definition.comment
+;     ^ comment.line
 
 :square { dup * } defn
-# ^ entity.name
-#       ^ punctuation.section.block.begin
-#         ^ meta.block
-#               ^ punctuation.section.block.end
+; ^ entity.name
+;       ^ punctuation.section.block.begin
+;         ^ meta.block
+;               ^ punctuation.section.block.end
 
 @square list
-# ^ entity.name
+; ^ entity.name
+
+{ 5 + }
+; ^ constant.numeric
+;^^^^^ meta.block
 
 "here is a string" .
-# <- punctuation.definition.string.begin
-# ^ string.quoted.double
-#                ^ punctuation.definition.string.end
+; <- punctuation.definition.string.begin
+; ^ string.quoted.double
+;                ^ punctuation.definition.string.end
 
 'here is a
   multiline
 string' .
-# ^ string.quoted.single
-#     ^ punctuation.definition.string.end
+; ^ string.quoted.single
+;     ^ punctuation.definition.string.end
 
 "here is a string with ( a paren"
-# <- punctuation.definition.string.begin
-#                      ^ string.quoted.double
-#                               ^ punctuation.definition.string.end
+; <- punctuation.definition.string.begin
+;                      ^ string.quoted.double
+;                               ^ punctuation.definition.string.end

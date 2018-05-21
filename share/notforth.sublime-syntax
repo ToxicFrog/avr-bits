@@ -7,10 +7,12 @@ scope: source.nf
 fileTypes: []
 uuid: 323576be-8d1a-45a0-b0de-24a978ac1380
 contexts:
-  main:
+  prototype:
     - include: comments
     - include: strings
     - include: numbers
+
+  main:
     - match: (?:^|\s)(@[^\s]+)
       # TODO: find something better for this
       scope: entity.name.nf
