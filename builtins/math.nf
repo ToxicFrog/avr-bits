@@ -40,4 +40,12 @@ set or clear it. These functions will probably be heavily revised.)
 ( x bit bit-off -- x' )
 :bit-off { 1 exch << ~ & } defn
 
+( x bit val bit-set -- x' )
+(set the bit'th bit of x to val)
+:bit-set {
+  @bit-on exch
+  @bit-off exch
+  ifelse
+} defn
+
 0 c/file

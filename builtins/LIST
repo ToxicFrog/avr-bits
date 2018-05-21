@@ -10,4 +10,5 @@ io.nf
 memory.nf
 math.nf
 atmega328p-registers.nf
+avr-pins.nf
 repl.nf

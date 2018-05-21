@@ -18,14 +18,15 @@ bytecode pushed onto the stack.)
   @repl/lex-token @repl/ateof until
 } defn
 
-:led-init { DDRB dup ? 5 bit-on ! } defn
-:led-on { PORTB dup ? 5 bit-on ! } defn
-:led-off { PORTB dup ? 5 bit-off ! } defn
+:led-init { pins/D13 pin/out } defn
+:led-on { pins/D13 1 pin/write } defn
+:led-off { pins/D13 0 pin/write } defn
 
 :main {
   led-init
   led-on
   0
+  ; TODO: pcall crashes in hosted mode
   @repl/run @repl/run pcall
 } defn
 
