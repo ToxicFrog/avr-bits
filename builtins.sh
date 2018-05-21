@@ -18,12 +18,14 @@
 set -e
 
 FILES=( $(egrep -v '^#' builtins/LIST ) )
+DIRTY=0
 
 for nf in ${FILES[@]}; do
-  if [[ builtins/$nf -ot builtins/$nf.impl ]]; then
+  if [[ builtins/$nf -ot builtins/$nf.impl ]] && ! (( DIRTY )); then
     echo "Up to date: $nf"
     continue
   fi
+  DIRTY=1
   echo "Rebuilding: $nf"
   (cd builtins; ../nf-bootstrap $nf)
   {
