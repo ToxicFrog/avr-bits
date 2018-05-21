@@ -34,7 +34,7 @@
   value may have changed by the time the function gets called...)
 :defconst '
   WordImpl val = (WordImpl)pop();
-  register_word((const char*)pop(), val, IS_CONSTANT);
+  c_register_word(register_word((const char*)pop(), val, IS_CONSTANT));
 ' c/defn
 
 (name size defvar -- )

@@ -66,7 +66,7 @@ void word_cfile() {
 // literals. Write those out to the C files selected with c/file and save the
 // function itself as a no-op. The strings are freed.
 void word_cdefn() {
-  CHECK(cimpl, "Attempt to call c/impl before c/file.");
+  CHECK(cimpl, "Attempt to call c/defn before c/file.");
   char* body = (char*)pop();
   const char* name = (char*)pop();
   const char* mangled_name = mangle(name);
@@ -87,6 +87,7 @@ void word_cdefn() {
 #define C_IMPL_BUFSIZE (size_t)4096
 #include <stdarg.h>
 
+// Append to the C source buffer for the function currently being compiled.
 void c_append(const char * fmt, ...) {
   //printf("c_append: %s\n", fmt);
   if (!compiling || !cimpl) return;
@@ -123,7 +124,15 @@ void c_endfn(Word* word) {
 void c_register_word(Word* word) {
   if (!cimpl) return;
   const char* mangled_name = mangle(word->name);
-  if (word->execute) {
+  if (word->flags & IS_CONSTANT) {
+    fprintf(cimpl, "#define word_%s_impl (WordImpl)%#zx\n",
+      mangled_name, (size_t)word->execute);
+  } else if (word->execute) {
+    // Word contains a pointer to executable code.
+    // That means this was called from `defn` and the word in question is an
+    // anonymous function on the stack.
+    // TODO: what do we do if it's not anonymous, e.g.
+    // :. @x. defn
     fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
       mangled_name, word);
   }
