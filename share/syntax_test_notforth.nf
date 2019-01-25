@@ -45,3 +45,10 @@ string' .
 ; <- punctuation.definition.string.begin
 ;                      ^ string.quoted.double
 ;                               ^ punctuation.definition.string.end
+
+{
+  (block comment)
+; ^^^^^^^^^^^^^^^^ punctuation.definition.comment
+  5 5 + ; line comment
+;       ^^^^^^^^^^^^^^^ punctuation.definition.comment
+}

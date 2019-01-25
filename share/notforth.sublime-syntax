@@ -19,12 +19,12 @@ contexts:
     - match: (?:^|\s)(\{)
       captures:
         1: punctuation.section.block.begin
-      push:
-        - meta_scope: meta.block
-        - match: (?:^|\s)(\})
-          captures:
-            1: punctuation.section.block.end
-          pop: true
+      push: block
+  block:
+    - match: (?:^|\s)(\})
+      captures:
+        1: punctuation.section.block.end
+      pop: true
   comments:
     - match: (?:^|\s)(;).*$\n?
       scope: comment.line.nf
