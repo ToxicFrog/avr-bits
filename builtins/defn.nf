@@ -40,7 +40,10 @@
 (name size defvar -- )
 (As defconst, but allocates `size` bytes of memory, and defines `name` as a
   constant holding the address of that memory.)
-; TODO :defvar { alloc defconst } defn
+:defvar '
+  push((Cell)malloc((size_t)pop()));
+  word_defconst_impl();
+' c/defn
 
 ; TODO: words to clean up words? In particular, a way to free a word, and a way
 ; to unlink a word from the dictionary.
