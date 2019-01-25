@@ -9,27 +9,11 @@
 ; So instead we do this and just hard-code the values for now. :/
 
 0
-:PINB :DDRB :PORTB
-:PINC :DDRC :PORTC
-:PIND :DDRD :PORTD
-0x2b ; address of last register
+:PINB 0x23 :DDRB 0x24 :PORTB 0x25
+:PINC 0x26 :DDRC 0x27 :PORTC 0x28
+:PIND 0x29 :DDRD 0x2a :PORTD 0x2b
 
-; TODO: replace with for loop, once for loops implemented
-; something like:
-; @defconst 0x2b 0x23 -1 for
-; except we don't have negatives, so 0 1 - I guess
-{
-  ; TODO: a way to disable C emission for individual functions so that helpers
-  ; like these don't end up cluttering up the final symbol table.
-  ; define register
-  2 dupn defconst
-  ; decrement address
-  1 -
-  ; pop register name
-  exch pop
-} { 1 nth } while
-pop pop
-
+@defconst @dup while
 
 ; pin definitions
 ; top byte is address of PIN io register (add 1 to get DDR, 2 to get PORT)
