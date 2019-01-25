@@ -27,7 +27,11 @@ for nf in ${FILES[@]}; do
   fi
   DIRTY=1
   echo "Rebuilding: $nf"
-  (cd build; ../nf-bootstrap ../builtins/$nf)
+  (cd build; ../nf-bootstrap ../builtins/$nf) || {
+    echo "Compilation failed, cleaning up..."
+    rm -f build/$nf.impl
+    exit 1
+  }
   {
     echo "#ifdef ENABLE_BUILTINS"
     for file in ${FILES[@]}; do
