@@ -49,8 +49,7 @@ int main(int argc, char ** argv) {
     return 0;
   }
 
-  push(0);
-  execute_word(find_word("repl/run"));
+  execute_word(find_word("main"));
   return 0;
 }
 

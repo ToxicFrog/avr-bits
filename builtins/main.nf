@@ -2,8 +2,8 @@
 
 "main.nf" c/file
 
-:main @repl defn
-;:main @demo defconst
-;:main @morningtime defconst
+:main { 0 @repl @repl pcall } defn
+;:main { demo } defn
+;:main { morningtime } defn
 
 0 c/file

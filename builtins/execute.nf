@@ -20,7 +20,7 @@ calls `err`.)
   Word* err = (Word*)pop();
   Word* fn = (Word*)pop();
   if (catch_error()) {
-    push(1);
+    push(1); // TODO: actually propagate error code here
     execute_word(err);
   } else {
     execute_word(fn);

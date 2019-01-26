@@ -11,19 +11,11 @@ declared IMMEDIATE, in compilation mode it will be compiled and the generated
 bytecode pushed onto the stack.)
 :repl/lex-token 'lex_token();' c/defn
 
-:repl/run {
+:repl {
   pop  ; there will be an error code on the stack (or 0 on first run)
   prompt
   ; lex-token will call prompt automatically at EOL.
   { repl/lex-token repl/not-eof? } loop
-} defn
-
-:repl {
-  ; ignite onboard LED
-  pins/D13 dup pin/out 1 pin/write
-  0
-  ; TODO: pcall crashes in hosted mode
-  @repl/run @repl/run pcall
 } defn
 
 0 c/file
