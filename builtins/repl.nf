@@ -2,7 +2,7 @@
 
 ( repl/ateof -- bool )
 (Returns true if stdin is at end-of-file.)
-:repl/ateof 'push(tty_peek() == EOF);' c/defn
+:repl/not-eof? 'push(tty_peek() != EOF);' c/defn
 
 ( repl/lex-token -- * )
 (Lex a token from stdin. The exact behaviour of this depends on context; in
@@ -15,7 +15,7 @@ bytecode pushed onto the stack.)
   pop  ; there will be an error code on the stack (or 0 on first run)
   prompt
   ; lex-token will call prompt automatically at EOL.
-  @repl/lex-token @repl/ateof until
+  { repl/lex-token repl/not-eof? } loop
 } defn
 
 :main {

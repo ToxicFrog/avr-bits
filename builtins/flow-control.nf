@@ -23,32 +23,14 @@
   }
 ' c/defn
 
-( body expr while -- )
-(Repeatedly evaluates expr, then, if it pushed a true value onto the stack, body.
-If the body is expected to leave the value to be checked on the stack, make sure
-there's something there before invoking while and then use @dup as the expr.
-To iterate over a list of values, assuming you can use false as a sentinel, you
-can do something like:
-  0 x y z { ... } @dup while pop)
-(TODO: investigate whether I want this to be <body> <initial-value> while and then
-expect body to leave something on the stack.)
-:while '
-  Word* expr = (Word*)pop();
-  Word* body = (Word*)pop();
-  for (execute_word(expr); pop(); execute_word(expr)) {
-    execute_word(body);
-  }
-' c/defn
-
-( body expr until -- )
-(Evaluates body, then repeatedly evaluates expr and then body until expr returns true.)
-:until '
-  Word* expr = (Word*)pop();
+( body loop -- )
+(Pops body and executes it, then pops the value on top of the stack. If it's 0,
+returns. Otherwise, repeats the process until it's 0.)
+:loop '
   Word* body = (Word*)pop();
   do {
     execute_word(body);
-    execute_word(expr);
-  } while (!pop());
+  } while (pop());
 ' c/defn
 
 ( body start end for -- )

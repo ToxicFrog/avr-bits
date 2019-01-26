@@ -27,6 +27,11 @@
 (Drops the top element of the stack.)
 :pop "pop();" c/defn
 
-(TODO: support nth, insert, delete, drop-n, dup-n, count)
+( * count -- * n )
+(Pushes the number of elements on the stack.)
+:count "push(STACKP);" c/defn
+
+(TODO: support nth, insert, delete, drop-n, dup-n)
+
 
 0 c/file

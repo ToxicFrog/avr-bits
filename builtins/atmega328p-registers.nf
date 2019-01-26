@@ -8,17 +8,14 @@
 ; This eats 7 bytes of RAM (plus malloc overhead) per register.
 ; So instead we do this and just hard-code the values for now. :/
 
-0
+; IO register addresses
 :PINB 0x23 :DDRB 0x24 :PORTB 0x25
 :PINC 0x26 :DDRC 0x27 :PORTC 0x28
 :PIND 0x29 :DDRD 0x2a :PORTD 0x2b
 
-@defconst @dup while
-
 ; pin definitions
 ; top byte is address of PIN io register (add 1 to get DDR, 2 to get PORT)
 ; bottom byte is bit within IO register
-0
 :pins/D0 0x2900
 :pins/D1 0x2901
 :pins/D2 0x2902
@@ -43,8 +40,7 @@
 :pins/A4 0x2604
 )
 
-@defconst @dup while
-
+{ defconst count } loop
 
 (
 '#ifdef AVR
