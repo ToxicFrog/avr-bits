@@ -30,6 +30,9 @@ run: notforth
 upload: build/notforth.hex
 	avrdude -v -b 57600 -D -c arduino -p atmega328p -P /dev/ttyUSB0 -U flash:w:build/notforth.hex
 
+size: build/notforth.elf
+	avr-size -C build/notforth.elf | egrep --color=never '^(Program|Data)'
+
 clean:
 	> builtins/all.c
 	rm -f notforth nf-bootstrap build/*
