@@ -18,7 +18,7 @@ bytecode pushed onto the stack.)
   { repl/lex-token repl/not-eof? } loop
 } defn
 
-:main {
+:repl {
   ; ignite onboard LED
   pins/D13 dup pin/out 1 pin/write
   0

@@ -11,6 +11,9 @@ memory.nf
 math.nf
 atmega328p-registers.nf
 avr-pins.nf
-# pick one of the below
+# main implementations, probably only need one of them
 repl.nf
-#demo.nf
+demo.nf
+morningtime.nf
+# edit this to pick which one actually runs
+main.nf

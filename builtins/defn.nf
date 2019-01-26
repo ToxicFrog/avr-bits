@@ -40,10 +40,13 @@
 (name size defvar -- )
 (As defconst, but allocates `size` bytes of memory, and defines `name` as a
   constant holding the address of that memory.)
-:defvar '
-  push((Cell)malloc((size_t)pop()));
-  word_defconst_impl();
-' c/defn
+; TODO this doesn't actually work!
+; when precompiling, it calls malloc() ON THE HOST, then embeds the resulting
+; address into the generated C code!
+;:defvar '
+;  push((Cell)malloc((size_t)pop()));
+;  word_defconst_impl();
+;' c/defn
 
 ; TODO: words to clean up words? In particular, a way to free a word, and a way
 ; to unlink a word from the dictionary.
