@@ -42,6 +42,7 @@ void execute_word(Word* word) {
   } else if (word->flags & IS_BYTECODE) {
     // If bytecode, word->execute points to an array of WordImpls terminated
     // with OP_EOF.
+    CHECK(word->execute, "call to declared but not yet compiled function");
     execute_bytecode((WordImpl*)word->execute);
   } else {
     // Otherwise it's just a pointer to a C function of no args that does the thing.
