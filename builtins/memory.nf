@@ -5,16 +5,44 @@
 :? "push(*(uint8_t*)pop());" c/defn
 
 ( addr ?? -- *addr )
-(Peek a uint16.)
-:?? "push(*(uint16_t*)pop());" c/defn
+(Peek a Cell.)
+:?? "push(*(Cell*)pop());" c/defn
 
 ( addr val ! -- )
 (Poke a byte.)
 :! "uint8_t val = (uint8_t)pop(); *(uint8_t*)pop() = val;" c/defn
 
 ( addr val !! -- )
-(Poke a uint16.)
-:!! "uint16_t val = (uint16_t)pop(); *(uint16_t*)pop() = val;" c/defn
+(Poke a Cell.)
+:!! "Cell val = (Cell)pop(); *(Cell*)pop() = val;" c/defn
+
+(Equivalents for arrays.
+All have the signature: array index -> val or array index val ->)
+
+:[?] '
+  size_t index = (size_t)pop();
+  push(((uint8_t*)pop())[index]);
+' c/defn
+
+:[??] '
+  size_t index = (size_t)pop();
+  push(((Cell*)pop())[index]);
+' c/defn
+
+:[!] '
+  uint8_t val = (uint8_t)pop();
+  size_t index = (size_t)pop();
+  ((uint8_t*)pop())[index] = val;
+' c/defn
+
+:[!!] '
+  Cell val = (Cell)pop();
+  size_t index = (size_t)pop();
+  ((Cell*)pop())[index] = val;
+' c/defn
+
+(size alloc -> address)
+:alloc "push((Cell)malloc((size_t)pop()));" c/defn
 
 (TODO: memory management
   malloc/free
