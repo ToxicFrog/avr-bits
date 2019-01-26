@@ -1,8 +1,14 @@
-(Functions for math and bitwise operations.)
+(Functions for math, logic, and bitwise operations.)
 
 "math.nf" c/file
 
 :nil 0 defconst
+
+(Boolean logic operators.)
+
+:and "push(pop() && pop());" c/defn
+:or  "push(pop() || pop());" c/defn
+:not "push(!pop());" c/defn
 
 (Arithmetic operators. Non-commutative operators - / % expect the second operand
 on top of the stack, so `10 2 /` => 5.)

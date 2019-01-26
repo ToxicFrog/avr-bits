@@ -5,10 +5,6 @@
 :morning? { 1 n? } defn
 :morning! { 1 exch n! } defn
 
-:not {
-  { 0 } exch { 1 } exch ifelse
-} defn
-
 :loop-body {
   { ; code for when button is pressed
     {
