@@ -3,14 +3,14 @@
 "defn.nf" c/file
 
 (name body defn -- )
-(Bind the name to the function body. The body can either be an inline function
-  literal, e.g. :inc { 1 + } defn, or the value of an existing function, e.g.
-  :println @. defn)
-:defn "
+(Bind the name to the function body. The body needs to be a code block, i.e.
+{...}. To alias a function use :alias { orig } defn, not :alias @orig defn.)
+:defn '
   Word* word = (Word*)pop();
+  CHECK(!word->name, "tried to use defn to alias a function");
   word->name = (char*)pop();
   c_register_word(word);
-" c/defn
+' c/defn
 
 (name body defmacro -- )
 (As defn, but the function will be marked IMMEDIATE, meaning that it will be

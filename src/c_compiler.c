@@ -130,7 +130,11 @@ void c_register_word(Word* word) {
   } else if (word->execute) {
     // Word contains a pointer to executable code.
     // That means this was called from `defn` and the word in question is an
-    // anonymous function on the stack.
+    // anonymous function on the stack. (If called by c/defn execute would
+    // be NULL.)
+    // The emitted C code was named after the address of the word, not the
+    // address of the code buffer, because we didn't know the latter until
+    // compilation was completed.
     // TODO: what do we do if it's not anonymous, e.g.
     // :. @x. defn
     fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",

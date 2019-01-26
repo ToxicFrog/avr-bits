@@ -92,6 +92,9 @@ void compile_word(Word* word) {
   }
 }
 
+// Called by lex_addressof, which handles tokens of the form @foo.
+// By the time this is called, word lookup (returning the Word* for foo) has
+// already succeeded. Our job is to emit code pushing the address of the Word.
 void compile_addressof(Word* word) {
   // If the word is in ROM, we create a copy of the dictionary entry in RAM and
   // push that -- it'll take precedence over the version in ROM from now on.
