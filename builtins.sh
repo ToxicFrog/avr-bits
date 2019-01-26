@@ -27,6 +27,8 @@ for nf in ${FILES[@]}; do
   fi
   DIRTY=1
   echo "Rebuilding: $nf"
+  # TODO: handle the case where the file doesn't contain a c/file and is just
+  # meant to be parsed and executed at boot time.
   (cd build; ../nf-bootstrap ../builtins/$nf) || {
     echo "Compilation failed, cleaning up..."
     rm -f build/$nf.impl
