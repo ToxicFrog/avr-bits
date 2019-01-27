@@ -163,6 +163,11 @@ void c_pushnumber(Cell n) {
   c_append("  push(%d);\n", n);
 }
 
+void c_pushconst(const Word* word) {
+  const char* mangled_name = mangle(word->name);
+  c_append("  push((Cell)word_%s_impl);\n", mangled_name);
+}
+
 // This is called by compile_addressof, which is given a Word and emits code to
 // push it onto the stack. If the word is in ROM, it first calls register_word
 // to copy it to RAM and pushes that. This happens before calling c_pushword.

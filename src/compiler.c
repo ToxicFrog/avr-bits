@@ -77,11 +77,16 @@ void compile_number(Cell num) {
   c_pushnumber(num);
 }
 
+void compile_const(const Word* word) {
+  op_pushliteral((Cell)word->execute);
+  c_pushconst(word);
+}
+
 void compile_word(Word* word) {
   if (!compiling || word->flags & IS_IMMEDIATE) {
     execute_word(word);
   } else if (word->flags & IS_CONSTANT) {
-    compile_number((Cell)word->execute);
+    compile_const(word);
   } else if (word->flags & IS_BYTECODE) {
     push((Cell)OP_CALLWORD);
     push((Cell)word->execute);

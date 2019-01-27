@@ -8,6 +8,7 @@
   void c_endfn(Word*);
   void c_pushstring(const char*);
   void c_pushnumber(Cell);
+  void c_pushconst(const Word*);
   void c_pushword(Word*);
   void c_callword(Word*);
 #else
@@ -15,6 +16,7 @@
   #define c_endfn(x)
   #define c_pushstring(x)
   #define c_pushnumber(x)
+  #define c_pushconst(x);
   #define c_pushword(x)
   #define c_callword(x)
 #endif
