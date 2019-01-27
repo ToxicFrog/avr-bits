@@ -105,6 +105,13 @@ static const PROGMEM Word word_prompt_defn = {
   #define LAST_DEFINED_WORD word_prompt_defn
 #endif
 
+#define REGISTER_WORD(name_str, name, flags)\
+  static const PROGMEM char word_##name##_name[] = name_str;\
+  static const PROGMEM Word word_##name##_defn = {\
+    (Word*)&LAST_DEFINED_WORD, word_##name##_impl, word_##name##_name,\
+    SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | flags\
+  };
+
 #define ENABLE_BUILTINS
 #include "../builtins/all.c"
 #undef ENABLE_BUILTINS

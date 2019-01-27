@@ -140,19 +140,15 @@ void c_register_word(Word* word) {
     fprintf(cimpl, "#define word_%s_impl word_anon_%p\n",
       mangled_name, word);
   }
-  fprintf(cimpl, "static const PROGMEM char word_%s_name[] = \"%s\";\n",
-    mangled_name, word->name);
   // We force the IS_BYTECODE flag off here because once this definition gets
   // loaded at compile time, it isn't bytecode -- but this is probably getting
   // called from `defn`, which means the function *in memory* is implemented as
   // bytecode and that flag will be set.
   fprintf(cimpl,
-    "static const PROGMEM Word word_%s_defn = {"
-    " (Word*)&LAST_DEFINED_WORD, word_%s_impl, word_%s_name, SELF_IN_FLASH | NEXT_IN_FLASH | NAME_IN_FLASH | %d"
-    " };\n"
+    "REGISTER_WORD(\"%s\", %s, %d)\n"
     "#undef LAST_DEFINED_WORD\n"
     "#define LAST_DEFINED_WORD word_%s_defn\n\n",
-    mangled_name, mangled_name, mangled_name, (word->flags & ~IS_BYTECODE), mangled_name);
+    word->name, mangled_name, (word->flags & ~IS_BYTECODE), mangled_name);
 }
 
 void c_pushstring(const char* str) {
