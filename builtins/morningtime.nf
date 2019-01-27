@@ -1,11 +1,12 @@
 'morningtime.nf' c/file
 
+:data 2 defvar
+
 ; Keep these flags on the stack for now because we don't have defvar.
-1 0
-:waiting? { 0 n? } defn
-:waiting! { 0 exch n! } defn
-:morning? { 1 n? } defn
-:morning! { 1 exch n! } defn
+:waiting? { data ? } defn
+:waiting! { data exch ! } defn
+:morning? { data 1 + ? } defn
+:morning! { data 1 + exch ! } defn
 
 :loop-body {
   { ; code for when button is pressed

@@ -8,6 +8,7 @@
 #include "compiler.h"
 #include "error.h"
 #include "lexer.h"
+#include "c_compiler.h"
 
 //// Control words ////
 

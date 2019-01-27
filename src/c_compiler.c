@@ -62,9 +62,9 @@ void word_cfile() {
   }
 }
 
-// Similar to defn, but assumes the top of the stack is a function full of string
-// literals. Write those out to the C files selected with c/file and save the
-// function itself as a no-op. The strings are freed.
+// Similar to defn, but assumes the top of the stack is a string literal.
+// Writes it out to the C file selected with c/file and saves the
+// function itself as a no-op. The string is freed.
 void word_cdefn() {
   CHECK(cimpl, "Attempt to call c/defn before c/file.");
   char* body = (char*)pop();
@@ -162,6 +162,24 @@ void c_pushnumber(Cell n) {
 void c_pushconst(const Word* word) {
   const char* mangled_name = mangle(word->name);
   c_append("  push((Cell)word_%s_impl);\n", mangled_name);
+}
+
+// Special form: handle a call to `defvar` by statically allocating a buffer of
+// the given size.
+void c_defvar(const char* name, const size_t size) {
+  CHECK(cimpl, "call to defvar outside c/file mode");
+  CHECK(!compiling, "call to defvar inside function body");
+  const char* mangled_name = mangle(name);
+  fprintf(cimpl,
+    "static uint8_t word_%s_alloc[%lu];\n"
+    "#define word_%s_impl ((WordImpl)&word_%s_alloc)\n"
+    "REGISTER_WORD(\"%s\", %s, %d)\n"
+    "#undef LAST_DEFINED_WORD\n"
+    "#define LAST_DEFINED_WORD word_%s_defn\n\n",
+    mangled_name, size,
+    mangled_name, mangled_name,
+    name, mangled_name, IS_CONSTANT,
+    mangled_name);
 }
 
 // This is called by compile_addressof, which is given a Word and emits code to

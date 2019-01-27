@@ -11,12 +11,14 @@
   void c_pushconst(const Word*);
   void c_pushword(Word*);
   void c_callword(Word*);
+  void c_defvar(const char* name, const size_t size);
 #else
   #define c_beginfn(x)
   #define c_endfn(x)
   #define c_pushstring(x)
   #define c_pushnumber(x)
-  #define c_pushconst(x);
+  #define c_pushconst(x)
   #define c_pushword(x)
   #define c_callword(x)
+  #define c_defvar(x, y)
 #endif

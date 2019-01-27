@@ -33,19 +33,4 @@
 
 (TODO: support nth, insert, delete, drop-n, dup-n)
 
-; TODO not super happy about these names, also their very existence is only
-; because I can't get defvar working
-( n n? )
-(Gets the nth element of the stack, counting UP FROM THE BOTTOM, unlike nth.)
-:n? '
-  push(STACK[pop()]);
-' c/defn
-
-( n x n! )
-(Sets the nth element of the stack, counting UP FROM THE BOTTOM, to x.)
-:n! '
-  const Cell n = pop();
-  STACK[pop()] = n;
-' c/defn
-
 0 c/file

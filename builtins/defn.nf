@@ -37,16 +37,18 @@
   c_register_word(register_word((const char*)pop(), val, IS_CONSTANT));
 ' c/defn
 
-(name size defvar -- )
-(As defconst, but allocates `size` bytes of memory, and defines `name` as a
-  constant holding the address of that memory.)
-; TODO this doesn't actually work!
-; when precompiling, it calls malloc() ON THE HOST, then embeds the resulting
-; address into the generated C code!
-;:defvar '
-;  push((Cell)malloc((size_t)pop()));
-;  word_defconst_impl();
-;' c/defn
+(name size defvar --)
+(A special form that statically allocates `size` bytes of storage and binds
+the address they are allocated at to `name`. In compiled code you must use this
+at the top level rather than `alloc`. You must use `alloc` inside functions
+regardless.)
+:defvar '
+  size_t size = (size_t)pop();
+  const char* name = (char*)pop();
+  c_defvar(name, size);
+  // register a placeholder so later references in the same compilation unit work
+  register_word(name, (WordImpl)malloc(size), IS_CONSTANT);
+' c/defn
 
 ; TODO: words to clean up words? In particular, a way to free a word, and a way
 ; to unlink a word from the dictionary.
