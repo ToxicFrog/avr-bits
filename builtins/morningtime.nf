@@ -1,3 +1,5 @@
+'morningtime.nf' c/file
+
 ; Keep these flags on the stack for now because we don't have defvar.
 1 0
 :waiting? { 0 n? } defn
@@ -33,3 +35,5 @@
   pins/D10 0 pin/write
   @loop-body loop
 } defn
+
+0 c/file
