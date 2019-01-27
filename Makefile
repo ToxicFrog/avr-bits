@@ -53,10 +53,13 @@ nf-bootstrap: ${SRCS} ${HDRS}
 	touch builtins/all.c
 	gcc ${CCFLAGS} -DLINUX -o nf-bootstrap ${SRCS}
 
-## ROM image for the AVR.
-build/notforth.hex: ${OBJS}
+## AVR ELF. Intermediate target so we can ask for its size.
+build/notforth.elf: ${OBJS}
 	avr-gcc ${AVR_LDFLAGS} -o build/notforth.elf build/*.o
 	avr-strip build/notforth.elf
+
+## ROM image for the AVR.
+build/notforth.hex: build/notforth.elf
 	avr-objcopy -O ihex -R .eeprom build/notforth.elf build/notforth.hex
 
 build/corewords.o: src/corewords.c builtins/all.c
