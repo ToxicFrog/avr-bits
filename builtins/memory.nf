@@ -42,7 +42,16 @@ All have the signature: array index -> val or array index val ->)
 ' c/defn
 
 (size alloc -> address)
-:alloc "push((Cell)malloc((size_t)pop()));" c/defn
+(Usable only inside functions if in compiled mode! Use defvar at the top level
+instead. It's more efficient anyways.)
+:alloc '
+  // FIXME commented out because cimpl/compiling not in scope for builtins.c
+  // CHECK(!cimpl || compiling, "call to alloc at top level of compiled file");
+  push((Cell)malloc((size_t)pop()));
+' c/defn
+
+(addr free ->)
+:free "free((void*)pop());" c/defn
 
 (TODO: memory management
   malloc/free
