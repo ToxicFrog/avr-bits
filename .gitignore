@@ -1,0 +1,4 @@
+*.o
+*.elf
+*.hex
+mn-cli/micronucleus
