@@ -1,5 +1,8 @@
 // #define F_CPU 16500000L
 
+#include <ctype.h>
+#include <string.h>
+
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -101,8 +104,130 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len) {
     LED_state = data[0];
 
   // LED state changed
-  set_led(PCB_LED, LED_state & NUM_LOCK);
+  // set_led(PCB_LED, LED_state & NUM_LOCK);
   return 1; // Data read, not expecting more
+}
+
+enum ModifierKeys {
+  L_CTRL  = 1<<0,
+  L_SHIFT = 1<<1,
+  L_ALT   = 1<<2,
+  L_GUI   = 1<<3,
+  R_CTRL  = 1<<4,
+  R_SHIFT = 1<<5,
+  R_ALT   = 1<<6,
+  R_GUI   = 1<<7,
+};
+
+#define KEY_ERROR_UNDEFINED 0x03
+
+#define KEY_ENTER 0x28 // Keyboard Return (ENTER)
+#define KEY_ESC 0x29 // Keyboard ESCAPE
+#define KEY_BACKSPACE 0x2a // Keyboard DELETE (Backspace)
+#define KEY_TAB 0x2b // Keyboard Tab
+#define KEY_SPACE 0x2c // Keyboard Spacebar
+#define KEY_MINUS 0x2d // Keyboard - and _
+#define KEY_EQUAL 0x2e // Keyboard = and +
+#define KEY_LEFTBRACE 0x2f // Keyboard [ and {
+#define KEY_RIGHTBRACE 0x30 // Keyboard ] and }
+#define KEY_BACKSLASH 0x31 // Keyboard \ and |
+#define KEY_HASHTILDE 0x32 // Keyboard Non-US # and ~
+#define KEY_SEMICOLON 0x33 // Keyboard ; and :
+#define KEY_APOSTROPHE 0x34 // Keyboard ' and "
+#define KEY_GRAVE 0x35 // Keyboard ` and ~
+#define KEY_COMMA 0x36 // Keyboard , and <
+#define KEY_DOT 0x37 // Keyboard . and >
+#define KEY_SLASH 0x38 // Keyboard / and ?
+#define KEY_CAPSLOCK 0x39 // Keyboard Caps Lock
+
+// Given a letter, return the scancode and set modifiers accordingly.
+// Returns 0 if it can't find the scancode.
+uint8_t to_scancode(unsigned char letter, uint8_t * modifiers) {
+  *modifiers = 0;
+  if (isupper(letter)) {
+    *modifiers = L_SHIFT;
+    return 0x04 + (letter - 'A');
+  } else if (letter >= 'a' && letter <= 'z') {
+    return 0x04 + (letter - 'a');
+  } else if (letter >= '1' && letter <= '9') {
+    // 0 is handled in the switch below, because ASCII orders the digits 0-9
+    // while USB orders them 1-0.
+    return 0x1E + (letter - '1');
+  } else switch(letter) {
+    case '0': return 0x27;
+    case ' ': return 0x2C;
+    case '/': return 0x38;
+    case '-': return 0x2D; // lowercase of _
+    case '.': return 0x37;
+    case '(': *modifiers = L_SHIFT; return 0x26;
+    case ')': *modifiers = L_SHIFT; return 0x27;
+    case ';': return 0x33;
+    case '&': *modifiers = L_SHIFT; return 0x24;
+    case '\n': return 0x28;
+    case '\x1B': return 0x29; // ESC
+    default: return 0;
+  }
+}
+
+void send_report() {
+  // Wait until ready
+  while (!usbInterruptIsReady()) {
+    wdt_reset();
+    usbPoll();
+    _delay_ms(1);
+  }
+  usbSetInterrupt((void*)&keyboard_report, sizeof(keyboard_report));
+  while (!usbInterruptIsReady()) {
+    wdt_reset();
+    usbPoll();
+    _delay_ms(1);
+  }
+}
+
+void blink(size_t n) {
+  for (; n; --n) {
+    set_led(PCB_LED, 1);
+    wdt_reset();
+    usbPoll();
+    _delay_ms(1);
+    set_led(PCB_LED, 0);
+    wdt_reset();
+    usbPoll();
+    _delay_ms(1);
+  }
+}
+
+// Send a keydown event followed immediately by a keyup event.
+void send_keyevent(uint8_t scancode, uint8_t modifiers) {
+  keyboard_report.modifier = modifiers;
+  keyboard_report.keycode[0] = scancode;
+  set_led(PCB_LED, 1);
+  send_report();
+
+  memset(&keyboard_report, 0, sizeof(keyboard_report));
+  set_led(PCB_LED, 0);
+  send_report();
+}
+
+void send_letter(unsigned char letter) {
+  uint8_t modifiers;
+  uint8_t scancode = to_scancode(letter, &modifiers);
+  if (!scancode) return;
+  send_keyevent(scancode, modifiers);
+}
+
+void send_string(const char * str) {
+  for (size_t i = 0; i < strlen(str); ++i) {
+    send_letter(str[i]);
+  }
+}
+
+void wait(size_t ms, uint8_t poll) {
+  for (size_t i = 0; i < ms; i += 5) {
+    wdt_reset();
+    if (poll) usbPoll();
+    _delay_ms(5);
+  }
 }
 
 int main() {
@@ -115,17 +240,18 @@ int main() {
 
   usbInit();
   usbDeviceDisconnect(); // enforce re-enumeration
-  for(uint8_t i = 0; i<250; i++) { // wait 500 ms
-    wdt_reset(); // keep the watchdog happy
-    _delay_ms(2);
-  }
+  wait(500, 0);
   usbDeviceConnect();
 
-  set_led(PCB_LED, 0);
-
   sei();
+
+  // Wait for device to settle, if we send keystrokes too soon they get lost
+  wait(2000, 1);
+
+  send_string("echo Hello World\n");
+
   while(1) {
-    wdt_reset(); // keep the watchdog happy
+    wdt_reset();
     usbPoll();
   }
 

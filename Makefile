@@ -8,7 +8,7 @@ AVR_LDFLAGS=-Os -w -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=${AVR}
 
 all: main.size morningtime.size
 
-upload.%: %.hex mn-cli/micronucleus
+%.upload: %.hex mn-cli/micronucleus
 	mn-cli/micronucleus --run $<
 
 clean:
