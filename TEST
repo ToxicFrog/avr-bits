@@ -13,6 +13,13 @@ d' u.        ; expect 2
 words
 ;bye
 
-0 16 32 @u. @dup while
+0 16 32 { u. dup } loop
+
+:a 8 alloc defconst
+
+{ a exch dup dup * [!] } 0 7 for
+{ a exch [?] u. } 0 7 for
+a free
+; a unlink
 
 ;testloop
