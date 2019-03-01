@@ -248,7 +248,16 @@ int main() {
   // Wait for device to settle, if we send keystrokes too soon they get lost
   wait(2000, 1);
 
-  send_string("echo Hello World\n");
+  // Test pattern covers every main key on the keyboard.
+  // Final column should be aligned if they all worked.
+  send_string("~!@#$%^&*()_+  .\n");
+  send_string("`1234567890-=  .\n");
+  send_string("QWERTYUIOP{}|  .\n");
+  send_string("qwertyuiop[]\\  .\n");
+  send_string("ASDFGHJKL:\"    .\n");
+  send_string("asdfghjkl;'    .\n");
+  send_string("ZXCVBNM<>?     .\n");
+  send_string("zxcvbnm,./     .\n");
 
   while(1) {
     wdt_reset();
