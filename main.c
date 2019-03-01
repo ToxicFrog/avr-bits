@@ -104,7 +104,7 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len) {
     LED_state = data[0];
 
   // LED state changed
-  // set_led(PCB_LED, LED_state & NUM_LOCK);
+  set_led(PCB_LED, LED_state & NUM_LOCK);
   return 1; // Data read, not expecting more
 }
 
@@ -119,54 +119,39 @@ enum ModifierKeys {
   R_GUI   = 1<<7,
 };
 
-#define KEY_ERROR_UNDEFINED 0x03
-
-#define KEY_ENTER 0x28 // Keyboard Return (ENTER)
-#define KEY_ESC 0x29 // Keyboard ESCAPE
-#define KEY_BACKSPACE 0x2a // Keyboard DELETE (Backspace)
-#define KEY_TAB 0x2b // Keyboard Tab
-#define KEY_SPACE 0x2c // Keyboard Spacebar
-#define KEY_MINUS 0x2d // Keyboard - and _
-#define KEY_EQUAL 0x2e // Keyboard = and +
-#define KEY_LEFTBRACE 0x2f // Keyboard [ and {
-#define KEY_RIGHTBRACE 0x30 // Keyboard ] and }
-#define KEY_BACKSLASH 0x31 // Keyboard \ and |
-#define KEY_HASHTILDE 0x32 // Keyboard Non-US # and ~
-#define KEY_SEMICOLON 0x33 // Keyboard ; and :
-#define KEY_APOSTROPHE 0x34 // Keyboard ' and "
-#define KEY_GRAVE 0x35 // Keyboard ` and ~
-#define KEY_COMMA 0x36 // Keyboard , and <
-#define KEY_DOT 0x37 // Keyboard . and >
-#define KEY_SLASH 0x38 // Keyboard / and ?
-#define KEY_CAPSLOCK 0x39 // Keyboard Caps Lock
+const char uppercase[] = "~!@#$%^&*()_+{}|:\"<>?";
+const char lowercase[] = "`1234567890-=[]\\;',./ \t\n\b\x1B";
+const uint8_t keymap[] = {
+  0x35, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x2d, 0x2e, // numbers
+  0x2f, 0x30, 0x31, // squarebrackets and backslash
+  0x33, 0x34, // semicolon and quotes
+  0x36, 0x37, 0x38, // anglebrackets and ?
+  0x2c, 0x2b, 0x28, 0x2a, 0x29, // space, tab, CR, BS, ESC
+};
 
 // Given a letter, return the scancode and set modifiers accordingly.
 // Returns 0 if it can't find the scancode.
 uint8_t to_scancode(unsigned char letter, uint8_t * modifiers) {
   *modifiers = 0;
+  // Upper and lower case letters.
   if (isupper(letter)) {
     *modifiers = L_SHIFT;
     return 0x04 + (letter - 'A');
   } else if (letter >= 'a' && letter <= 'z') {
     return 0x04 + (letter - 'a');
-  } else if (letter >= '1' && letter <= '9') {
-    // 0 is handled in the switch below, because ASCII orders the digits 0-9
-    // while USB orders them 1-0.
-    return 0x1E + (letter - '1');
-  } else switch(letter) {
-    case '0': return 0x27;
-    case ' ': return 0x2C;
-    case '/': return 0x38;
-    case '-': return 0x2D; // lowercase of _
-    case '.': return 0x37;
-    case '(': *modifiers = L_SHIFT; return 0x26;
-    case ')': *modifiers = L_SHIFT; return 0x27;
-    case ';': return 0x33;
-    case '&': *modifiers = L_SHIFT; return 0x24;
-    case '\n': return 0x28;
-    case '\x1B': return 0x29; // ESC
-    default: return 0;
   }
+
+  // Everything else is handled by the upper/lower case arrays above.
+  char * ptr;
+  if ((ptr = strchr(uppercase, letter))) {
+    *modifiers = L_SHIFT;
+    return keymap[ptr - uppercase];
+  }
+
+  if ((ptr = strchr(lowercase, letter))) {
+    return keymap[ptr - lowercase];
+  }
+  return 0;
 }
 
 void send_report() {
@@ -184,28 +169,12 @@ void send_report() {
   }
 }
 
-void blink(size_t n) {
-  for (; n; --n) {
-    set_led(PCB_LED, 1);
-    wdt_reset();
-    usbPoll();
-    _delay_ms(1);
-    set_led(PCB_LED, 0);
-    wdt_reset();
-    usbPoll();
-    _delay_ms(1);
-  }
-}
-
 // Send a keydown event followed immediately by a keyup event.
 void send_keyevent(uint8_t scancode, uint8_t modifiers) {
   keyboard_report.modifier = modifiers;
   keyboard_report.keycode[0] = scancode;
-  set_led(PCB_LED, 1);
   send_report();
-
   memset(&keyboard_report, 0, sizeof(keyboard_report));
-  set_led(PCB_LED, 0);
   send_report();
 }
 
