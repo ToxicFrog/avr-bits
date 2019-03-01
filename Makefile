@@ -6,7 +6,7 @@ AVR_CCFLAGS=-c -Os -g -std=gnu11 -Wall \
   -DF_CPU=${CLK}
 AVR_LDFLAGS=-Os -w -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=${AVR}
 
-all: main.size morningtime.size
+all: startkey.size morningtime.size
 
 %.upload: %.hex mn-cli/micronucleus
 	mn-cli/micronucleus --run $<
@@ -30,7 +30,7 @@ mn-cli/micronucleus:
 
 # HACK HACK HACK
 # It should infer this from the stem, but this doesn't seem to be possible or something?!
-main.elf: PROGNAME = main
+startkey.elf: PROGNAME = startkey
 morningtime.elf: PROGNAME = morningtime
 
 %.elf: %.o usbdrv/usbdrv.o usbdrv/usbdrvasm.o usbdrv/oddebug.o
